@@ -1,0 +1,13 @@
+{
+  "name": "my-fullstack-app",
+  "version": "1.0.0",
+  "description": "A fullstack application with a backend and frontend.",
+  "scripts": {
+    "start": "pm2 start ecosystem.config.js",
+    "dev": "pm2 start ecosystem.config.js --env development",
+    "prod": "pm2 start ecosystem.config.js --env production"
+  },
+  "devDependencies": {
+    "pm2": "^5.4.3"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Interactive Tarot Reading",
+  "description": "An interactive tarot card reading application for counselors and querents. Choose from various decks and spreads, shuffle and select cards, and conduct a live reading with drag-and-drop card placement and reveal features.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
