@@ -155,8 +155,6 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({
   };
 
   const handleBoardTouchStart = (e: React.TouchEvent) => {
-    if (!isCounselor) return;
-  
     if (e.touches.length === 2 && boardRef.current) {
       e.preventDefault();
       const touch1 = e.touches[0];
@@ -164,9 +162,25 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({
       const dist = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
       pinchDistanceRef.current = dist;
       setIsPanning(false);
+      setDraggingCardId(null); // Cancel drag on pinch
     } else if (e.touches.length === 1) {
-      const cardElement = (e.target as HTMLElement).closest('[data-is-placed-card="true"]');
-      if (!cardElement) {
+      const cardElement = (e.target as HTMLElement).closest<HTMLElement>('[data-card-id]');
+      const cardId = cardElement?.dataset.cardId;
+
+      if (cardId && isCounselor) {
+        // Start card drag for counselor
+        e.preventDefault();
+        setDraggingCardId(cardId);
+        lastTouchPointRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+
+        // Move card to top of render stack
+        const cardToMove = placedCards.find(c => c.id === cardId);
+        if (cardToMove && placedCards[placedCards.length - 1]?.id !== cardId) {
+            const otherCards = placedCards.filter(c => c.id !== cardId);
+            onPlacedCardsChange([...otherCards, cardToMove]);
+        }
+      } else {
+        // Start board pan for both roles
         e.preventDefault();
         setIsPanning(true);
         lastTouchPointRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -175,9 +189,8 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({
   };
 
   const handleBoardTouchMove = (e: React.TouchEvent) => {
-    if (!isCounselor) return;
-
     if (e.touches.length === 2 && pinchDistanceRef.current && boardRef.current) {
+      // Handle pinch-to-zoom for both roles
       e.preventDefault();
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
@@ -200,17 +213,28 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({
         const newY = mouseFromOriginY - contentMouseY * newScale;
         return { scale: newScale, x: newX, y: newY };
       });
-    } else if (e.touches.length === 1 && isPanning && lastTouchPointRef.current) {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const deltaX = touch.clientX - lastTouchPointRef.current.x;
-      const deltaY = touch.clientY - lastTouchPointRef.current.y;
-      lastTouchPointRef.current = { x: touch.clientX, y: touch.clientY };
-      setView((prev) => ({ ...prev, x: prev.x + deltaX, y: prev.y + deltaY }));
+    } else if (e.touches.length === 1 && lastTouchPointRef.current) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - lastTouchPointRef.current.x;
+        const deltaY = touch.clientY - lastTouchPointRef.current.y;
+        
+        if (draggingCardId && isCounselor) { // Card drag is counselor-only
+            onPlacedCardsChange(placedCards.map(c => 
+                c.id === draggingCardId ? { ...c, x: c.x + (deltaX / view.scale), y: c.y + (deltaY / view.scale) } : c
+            ));
+        } else if (isPanning) { // Panning is for both roles
+            setView((prev) => ({ ...prev, x: prev.x + deltaX, y: prev.y + deltaY }));
+        }
+
+        lastTouchPointRef.current = { x: touch.clientX, y: touch.clientY };
     }
   };
 
   const handleBoardTouchEnd = (e: React.TouchEvent) => {
+    if (draggingCardId) {
+        setDraggingCardId(null);
+    }
     if (e.touches.length < 2) {
       pinchDistanceRef.current = null;
     }
@@ -248,7 +272,14 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({
   
   const toggleRotation = (id: string) => {
     if (!isCounselor) return;
-    onPlacedCardsChange(placedCards.map(c => c.id === id ? { ...c, rotation: c.rotation === 0 ? 90 : 0 } : c));
+    onPlacedCardsChange(placedCards.map(c => {
+      if (c.id === id) {
+        // Cycle rotation: 0 -> 90 -> 180 -> 0
+        const newRotation = c.rotation === 0 ? 90 : c.rotation === 90 ? 180 : 0;
+        return { ...c, rotation: newRotation };
+      }
+      return c;
+    }));
   };
   
   return (
@@ -256,7 +287,7 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({
       <div className="flex-shrink-0 p-3 bg-slate-900/70 rounded-t-lg flex items-center justify-between z-10">
         <div>
           <h3 className="text-xl font-bold text-amber-300 font-serif">{spread.name}</h3>
-          <p className="text-sm text-slate-400">{isCounselor ? 'You are in control. Use mouse wheel or pinch to zoom.' : 'The counselor is conducting the reading.'}</p>
+          <p className="text-sm text-slate-400">{isCounselor ? 'You are in control. Use mouse/touch to interact.' : 'The counselor is conducting the reading.'}</p>
         </div>
         <div className="flex items-center space-x-2">
             <button onClick={() => isCounselor && onRequestAddMoreCards()} disabled={!isCounselor || remainingDeckSize < 1} className="px-3 py-2 text-sm bg-slate-700 hover:bg-slate-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">Add 1 Card</button>
@@ -297,6 +328,7 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({
             <div
                 key={card.id}
                 data-is-placed-card="true"
+                data-card-id={card.id}
                 className={`absolute ${isCounselor ? (draggingCardId === card.id ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-default'}`}
                 style={{
                   left: `${card.x}px`,

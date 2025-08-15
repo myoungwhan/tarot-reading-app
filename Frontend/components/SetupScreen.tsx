@@ -13,17 +13,42 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
   const [settings, setSettings] = useState<Settings>(currentSettings);
   const isCounselor = role === 'counselor';
   const { data: decks = [], isLoading, isError } = useGetDecksQuery();
+    const [customCountValue, setCustomCountValue] = useState<string>(currentSettings.customCardCount.toString());
 
   console.log('SetupScreen initialized with settings',decks);
 
   const updatedDecks = addBackClassToDecks(decks).filter(deck => deck.active);
-  console.log('updated Decks',updatedDecks)
 
   //By Default the selected Deck will be Universal Waite
   const defaultDeck = updatedDecks?.find((deck) => deck.name === "Universal Waite");
 
   const handleStart = () => {
-    onComplete(settings);
+    // Ensure the final settings are based on the input's current value.
+    const finalCount = parseInt(settings.customCardCount, 10);
+    const validCount = !isNaN(finalCount) && finalCount > 0 ? finalCount : 1;
+    onComplete({ ...settings, customCardCount: validCount });
+  };
+
+   const handleCustomCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!isCounselor) return;
+      const value = e.target.value;
+      
+      // Allow empty string or numbers
+      setCustomCountValue(value);
+  
+      const num = parseInt(value, 10);
+      if (!isNaN(num) && num > 0) {
+        setSettings(s => ({...s, customCardCount: num}));
+      }
+    };
+
+    const handleCustomCountBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (!isCounselor) return;
+    const num = parseInt(e.target.value, 10);
+    if (isNaN(num) || num < 1) {
+      setCustomCountValue('1');
+      setSettings(s => ({...s, customCardCount: 1}));
+    }
   };
 
   useEffect(() => {
@@ -109,9 +134,11 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
                  <input
                     type="number"
                     id="custom-count"
-                    value={settings.customCardCount}
-                    onChange={(e) => isCounselor && setSettings(s => ({...s, customCardCount: Math.max(1, parseInt(e.target.value) || 1)}))}
+                    value={customCountValue}
+                    onChange={handleCustomCountChange}
+                    onBlur={handleCustomCountBlur}
                     disabled={!isCounselor}
+                    min="1"
                     className="w-full p-2 rounded-lg bg-slate-900 border border-slate-600 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none disabled:opacity-50"
                  />
             </div>

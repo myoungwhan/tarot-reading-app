@@ -6,7 +6,7 @@ interface LobbyScreenProps {
   errorMessage: string;
 }
 
-const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuerent, errorMessage }) => {
+const LobbyScreen: React.FC<LobbyScreenProps> = ({ currentRole,onStartCounselor, onJoinQuerent, errorMessage }) => {
   const [code, setCode] = useState('');
 
   const handleJoin = (e: React.FormEvent) => {
@@ -17,13 +17,13 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuere
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-8 flex flex-col items-center justify-center animate-fade-in">
+    <div className="w-full max-w-xl mx-auto p-8 flex flex-col items-center justify-center animate-fade-in">
       <h2 className="text-4xl font-bold text-center text-amber-300 mb-6 font-serif">Welcome to Interactive Tarot</h2>
       <p className="text-center text-slate-400 mb-12">Choose your role to begin the session.</p>
 
-      <div className="w-full grid md:grid-cols-2 gap-8">
+      <div className="w-full">
         {/* Counselor Panel */}
-        <div className="bg-slate-800/50 p-8 rounded-2xl shadow-2xl border border-slate-700 flex flex-col items-center">
+       { currentRole==="counselor" && (<div className="bg-slate-800/50 p-8 rounded-2xl shadow-2xl border border-slate-700 flex flex-col items-center">
           <h3 className="text-2xl font-serif text-amber-200 mb-4">For Counselors</h3>
           <p className="text-center text-slate-400 mb-6">Start a new session to generate a unique 4-digit code for your querent.</p>
           <button
@@ -32,10 +32,10 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuere
           >
             Start New Session
           </button>
-        </div>
+        </div>)}
 
         {/* Querent Panel */}
-        <div className="bg-slate-800/50 p-8 rounded-2xl shadow-2xl border border-slate-700 flex flex-col items-center">
+        {currentRole === "querent" && (<div className="bg-slate-800/50 p-8 rounded-2xl shadow-2xl border border-slate-700 flex flex-col justify-center items-center">
           <h3 className="text-2xl font-serif text-amber-200 mb-4">For Querents</h3>
           <p className="text-center text-slate-400 mb-6">Enter the 4-digit code provided by your counselor to join the session.</p>
           <form onSubmit={handleJoin} className="w-full flex flex-col items-center">
@@ -55,7 +55,7 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuere
               Join Session
             </button>
           </form>
-        </div>
+        </div>)}
       </div>
       
       {errorMessage && (
@@ -65,7 +65,7 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuere
       <div className="mt-12 text-center text-slate-500 max-w-2xl">
           <h4 className="font-bold mb-2">How it works:</h4>
           <p className="text-sm">
-            This application uses browser storage to sync the session between the counselor and querent. For this to work, both users must be on the same computer, but in different browser tabs or windows. The counselor starts a session, shares the code, and the querent uses that code to connect and view the reading in real-time.
+           This application uses a real-time socket connection to sync the session between the counselor and the querent. The counselor starts a session, shares the session code, and the querent enters that code to connect. Once connected, both users can view the reading and interact in real-time, even from different devices and locations.
           </p>
       </div>
       
