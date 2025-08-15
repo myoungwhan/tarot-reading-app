@@ -9,10 +9,11 @@ import ReadingScreen from './components/ReadingScreen';
 import { socket } from './services/socket';
 import { useGetDecksQuery, useGetCardsQuery } from './services/api';
 import _ from 'lodash';
+import ChoiceScreen from './components/ChoiceScreen';
 
 const App: React.FC = () => {
   const [sessionState, setSessionState] = useState<SessionState>({
-    step: 'lobby',
+    step: 'choice',
     settings: {
       deckStyle: 'universal-waite',
       deckBackClass: 'card-back-waite',
@@ -34,7 +35,6 @@ const App: React.FC = () => {
   const { data: decks = [], isLoading: decksLoading } = useGetDecksQuery();
   // Get the selected deck id from settings
   const selectedDeckId = sessionState.settings.deckStyle;
-  console.log(selectedDeckId,'selectedDeckId')
   // Fetch cards for the selected deck and cardSet (major/full)
   const { data: cardsFromBackend = [], isLoading: cardsLoading } = useGetCardsQuery({
     deck_id: selectedDeckId,
@@ -123,7 +123,7 @@ const App: React.FC = () => {
     };
 
     setSessionCode(newCode);
-    setRole('counselor');
+    // setRole('counselor');
     setSessionState(newSessionState);
     setErrorMessage('');
 
@@ -226,14 +226,26 @@ const App: React.FC = () => {
     }));
   };
 
+  const handleChoiceSelect = (role:string) => {
+    setRole(role);
+    if(role === "counselor") {
+      handleStartCounselorSession();
+    } else {
+      setSessionState((prevState) => ({
+        ...prevState,
+        step:"lobby",
+      }));
+    }
+  }
+
   const renderStep = () => {
     const { step, settings, deck, selectedCards, isAddingMore, placedCards, showConfetti } = sessionState;
 
-    console.log(settings,"settings curretnt")
-
     switch (step) {
+      case 'choice':
+        return <ChoiceScreen onChoiceSelect={handleChoiceSelect} errorMessage={errorMessage}/>
       case 'lobby':
-        return <LobbyScreen onStartCounselor={handleStartCounselorSession} onJoinQuerent={handleJoinQuerentSession} errorMessage={errorMessage} />;
+        return <LobbyScreen currentRole={role} onStartCounselor={handleStartCounselorSession} onJoinQuerent={handleJoinQuerentSession} errorMessage={errorMessage} />;
       case 'setup':
         return <SetupScreen onComplete={handleSetupComplete} currentSettings={settings} role={role!} />;
       case 'shuffling':

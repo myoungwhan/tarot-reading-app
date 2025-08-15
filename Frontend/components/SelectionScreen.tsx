@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { CardInstance, Role } from '../types';
 import { TarotCard } from './TarotCard';
@@ -21,6 +22,7 @@ const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected
   const isQuerent = role === 'querent';
   const pinchDistanceRef = useRef<number | null>(null);
   const lastTouchPointRef = useRef<{ x: number, y: number } | null>(null);
+  const hoverClearTimerRef = useRef<number | null>(null);
 
   const unselectedDeck = deck.filter(d => !selected.some(s => s.id === d.id));
 
@@ -39,6 +41,15 @@ const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected
       setTimeout(() => onCardsSelected(selected), 500);
     }
   }, [selected, count, onCardsSelected]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverClearTimerRef.current) {
+        clearTimeout(hoverClearTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
@@ -90,6 +101,13 @@ const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected
   };
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    // When a new touch begins, cancel any pending timer that would clear the hover state.
+    // This allows a user to tap on a card that is temporarily hovered.
+    if (hoverClearTimerRef.current) {
+      clearTimeout(hoverClearTimerRef.current);
+      hoverClearTimerRef.current = null;
+    }
+
     if (e.touches.length === 2 && containerRef.current) {
         e.preventDefault();
         const touch1 = e.touches[0];
@@ -97,8 +115,15 @@ const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected
         const dist = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
         pinchDistanceRef.current = dist;
         setIsPanning(false);
+        if (hoveredCardId) setHoveredCardId(null);
     } else if (e.touches.length === 1) {
-        const cardWrapper = (e.target as HTMLElement).closest('[data-is-card-wrapper="true"]');
+        const cardWrapper = (e.target as HTMLElement).closest<HTMLElement>('[data-card-id]');
+        
+        if (isQuerent) {
+            const cardId = cardWrapper?.dataset.cardId || null;
+            setHoveredCardId(cardId);
+        }
+
         if (!cardWrapper) {
             e.preventDefault();
             setIsPanning(true);
@@ -134,17 +159,44 @@ const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected
               const newY = mouseFromOriginY - (contentMouseY * newScale);
               return { scale: newScale, x: newX, y: newY };
           });
-      } else if (e.touches.length === 1 && isPanning && lastTouchPointRef.current) {
-          e.preventDefault();
+          return;
+      }
+      
+      if (e.touches.length === 1) {
           const touch = e.touches[0];
-          const deltaX = touch.clientX - lastTouchPointRef.current.x;
-          const deltaY = touch.clientY - lastTouchPointRef.current.y;
-          lastTouchPointRef.current = { x: touch.clientX, y: touch.clientY };
-          setView(prev => ({ ...prev, x: prev.x + deltaX, y: prev.y + deltaY }));
+          
+          if (isQuerent) {
+              const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+              const cardWrapper = elementUnderTouch?.closest<HTMLElement>('[data-card-id]');
+              const cardId = cardWrapper?.dataset.cardId || null;
+              if (hoveredCardId !== cardId) {
+                  setHoveredCardId(cardId);
+              }
+          }
+
+          if (isPanning && lastTouchPointRef.current) {
+              e.preventDefault();
+              const deltaX = touch.clientX - lastTouchPointRef.current.x;
+              const deltaY = touch.clientY - lastTouchPointRef.current.y;
+              lastTouchPointRef.current = { x: touch.clientX, y: touch.clientY };
+              setView(prev => ({ ...prev, x: prev.x + deltaX, y: prev.y + deltaY }));
+          }
       }
   };
   
   const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+      // If a card was being hovered when the user lifted their finger,
+      // keep it hovered for a short duration to allow for a selection tap.
+      if (hoveredCardId) {
+        if (hoverClearTimerRef.current) {
+          clearTimeout(hoverClearTimerRef.current);
+        }
+        hoverClearTimerRef.current = window.setTimeout(() => {
+          setHoveredCardId(null);
+          hoverClearTimerRef.current = null;
+        }, 1000); // Keep hovered for 1 second.
+      }
+      
       if (e.touches.length < 2) {
           pinchDistanceRef.current = null;
       }
@@ -168,7 +220,7 @@ const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected
         </h2>
         <p className="text-slate-400">Selected: {selected.length} / {count}. Use mouse wheel or pinch to zoom.</p>
       </div>
-      {console.log("Re-render Triggered in SelectionScreen with selected cards:", selected)}
+      
       {/* Fan Area */}
       <div 
         ref={containerRef}
@@ -197,6 +249,7 @@ const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected
                     <div
                         key={card.id}
                         data-is-card-wrapper="true"
+                        data-card-id={card.id}
                         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full"
                         style={{
                           transform: transform,
