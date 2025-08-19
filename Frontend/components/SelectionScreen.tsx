@@ -218,7 +218,7 @@ const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected
         <h2 className="text-3xl font-bold text-amber-300 mb-2 font-serif">
           {prompt || (isQuerent ? `Please Select ${count} Card(s)` : 'Waiting for Querent to Select Cards')}
         </h2>
-        <p className="text-slate-400">Selected: {selected.length} / {count}. Use mouse wheel or pinch to zoom.</p>
+        <p className="text-slate-400">Selected: <span className="text-amber-300 text-xl">{selected.length} / {count}</span>. Use mouse wheel or pinch to zoom.</p>
       </div>
       
       {/* Fan Area */}
