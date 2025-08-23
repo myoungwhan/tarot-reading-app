@@ -23,10 +23,10 @@ const Cards: React.FC = () => {
 
     return (
         <main className="px-6 py-8 bg-white">
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-[90rem] mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between ">
                         <div>
                             <h2 className="text-xl font-semibold text-gray-900 mb-2">Manage Universal Waite deck cards</h2>
                             <p className="text-gray-600">
@@ -68,7 +68,7 @@ const Cards: React.FC = () => {
 
                 {/* Major Arcana Content */}
                 {activeTab === "major" && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 justify-items-center">
                         {cards.map((card) => (
                             <React.Fragment key={card.id}>
                                 <AdminCard cardDetails={card} />
@@ -103,7 +103,7 @@ const Cards: React.FC = () => {
                         </div>
 
                         {/* Suit Content */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 justify-items-center">
                             {cards.map((card) => (
                                 <React.Fragment key={card.id}>
                                     <AdminCard cardDetails={card} />

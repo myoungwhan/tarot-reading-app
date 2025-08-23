@@ -23,10 +23,10 @@ const AdminCard = ({ cardDetails }) => {
 
     return (
         <>
-            <section className="max-w-xs bg-white border border-gray-200 rounded-lg shadow-sm">
+            <section className="w-fit bg-white border border-gray-200 rounded-lg shadow-sm">
                 <div className="aspect-square bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center p-2">
                     <img
-                        className="w-full h-full object-cover object-top"
+                        className="w-[300px] h-[500px] object-cover"
                         src={currentCardDetails.image_url || currentCardDetails.image}
                         alt=""
                     />
@@ -145,7 +145,7 @@ const CardEditModal = ({ open, cardData, onClose }) => {
 
                     <div className="space-y-6">
                         <div className="flex flex-col items-center space-y-4">
-                            <div className="w-48 h-48 bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg flex items-center justify-center relative group overflow-hidden">
+                            <div className="w-[300px] h-[500px] bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg flex items-center justify-center relative group overflow-hidden">
                                 <img
                                     src={editCardData?.image_url}
                                     alt={editCardData?.name}

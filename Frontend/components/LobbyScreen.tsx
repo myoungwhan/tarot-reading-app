@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 interface LobbyScreenProps {
   onStartCounselor: () => void;
@@ -6,7 +7,8 @@ interface LobbyScreenProps {
   errorMessage: string;
 }
 
-const LobbyScreen: React.FC<LobbyScreenProps> = ({ currentRole,onStartCounselor, onJoinQuerent, errorMessage }) => {
+const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuerent, errorMessage }) => {
+  const location = useLocation();
   const [code, setCode] = useState('');
 
   const handleJoin = (e: React.FormEvent) => {
@@ -17,25 +19,26 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ currentRole,onStartCounselor,
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto p-8 flex flex-col items-center justify-center animate-fade-in">
+    <div className="w-full max-w-4xl mx-auto p-8 flex flex-col items-center justify-center animate-fade-in">
       <h2 className="text-4xl font-bold text-center text-amber-300 mb-6 font-serif">Welcome to Interactive Tarot</h2>
       <p className="text-center text-slate-400 mb-12">Choose your role to begin the session.</p>
 
-      <div className="w-full">
+      <div className="w-full grid md:grid-cols-2 gap-8">
         {/* Counselor Panel */}
-       { currentRole==="counselor" && (<div className="bg-slate-800/50 p-8 rounded-2xl shadow-2xl border border-slate-700 flex flex-col items-center">
+        <div className="bg-slate-800/50 p-8 rounded-2xl shadow-2xl border border-slate-700 flex flex-col items-center">
           <h3 className="text-2xl font-serif text-amber-200 mb-4">For Counselors</h3>
           <p className="text-center text-slate-400 mb-6">Start a new session to generate a unique 4-digit code for your querent.</p>
           <button
+            disabled={location.pathname === "/querents"}
             onClick={onStartCounselor}
-            className="px-8 py-3 bg-amber-500 text-slate-900 font-bold text-lg rounded-lg shadow-lg hover:bg-amber-400 transition-all transform hover:scale-105"
+            className="px-8 py-3 bg-amber-500 text-slate-900 font-bold text-lg rounded-lg shadow-lg hover:bg-amber-400 transition-all transform hover:scale-105 disabled:bg-slate-600 disabled:cursor-not-allowed disabled:scale-100"
           >
             Start New Session
           </button>
-        </div>)}
+        </div>
 
         {/* Querent Panel */}
-        {currentRole === "querent" && (<div className="bg-slate-800/50 p-8 rounded-2xl shadow-2xl border border-slate-700 flex flex-col justify-center items-center">
+        <div className="bg-slate-800/50 p-8 rounded-2xl shadow-2xl border border-slate-700 flex flex-col items-center">
           <h3 className="text-2xl font-serif text-amber-200 mb-4">For Querents</h3>
           <p className="text-center text-slate-400 mb-6">Enter the 4-digit code provided by your counselor to join the session.</p>
           <form onSubmit={handleJoin} className="w-full flex flex-col items-center">
@@ -55,7 +58,7 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ currentRole,onStartCounselor,
               Join Session
             </button>
           </form>
-        </div>)}
+        </div>
       </div>
       
       {errorMessage && (

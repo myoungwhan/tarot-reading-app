@@ -9,11 +9,11 @@ import ReadingScreen from './components/ReadingScreen';
 import { socket } from './services/socket';
 import { useGetDecksQuery, useGetCardsQuery } from './services/api';
 import _ from 'lodash';
-import ChoiceScreen from './components/ChoiceScreen';
 
 const App: React.FC = () => {
+
   const [sessionState, setSessionState] = useState<SessionState>({
-    step: 'choice',
+    step: 'lobby',
     settings: {
       deckStyle: 'universal-waite',
       deckBackClass: 'card-back-waite',
@@ -123,7 +123,7 @@ const App: React.FC = () => {
     };
 
     setSessionCode(newCode);
-    // setRole('counselor');
+    setRole('counselor');
     setSessionState(newSessionState);
     setErrorMessage('');
 
@@ -226,26 +226,12 @@ const App: React.FC = () => {
     }));
   };
 
-  const handleChoiceSelect = (role:string) => {
-    setRole(role);
-    if(role === "counselor") {
-      handleStartCounselorSession();
-    } else {
-      setSessionState((prevState) => ({
-        ...prevState,
-        step:"lobby",
-      }));
-    }
-  }
-
   const renderStep = () => {
     const { step, settings, deck, selectedCards, isAddingMore, placedCards, showConfetti } = sessionState;
 
     switch (step) {
-      case 'choice':
-        return <ChoiceScreen onChoiceSelect={handleChoiceSelect} errorMessage={errorMessage}/>
       case 'lobby':
-        return <LobbyScreen currentRole={role} onStartCounselor={handleStartCounselorSession} onJoinQuerent={handleJoinQuerentSession} errorMessage={errorMessage} />;
+        return <LobbyScreen onStartCounselor={handleStartCounselorSession} onJoinQuerent={handleJoinQuerentSession} errorMessage={errorMessage} />;
       case 'setup':
         return <SetupScreen onComplete={handleSetupComplete} currentSettings={settings} role={role!} />;
       case 'shuffling':

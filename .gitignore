@@ -2,3 +2,6 @@
 Frontend/node_modules/
 .env
 Backend/node_modules/
+Backend/images/
+../node_modules/
+node_modules/

@@ -21,6 +21,10 @@ const routes: RouteObject[] = [
     element: <App />,
   },
   {
+    path:"/querents",
+    element:<App/>,
+  },
+  {
     path:"/admin/login",
     element: <AdminLogin />, // Admin login page
   },
