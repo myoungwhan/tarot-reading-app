@@ -38,6 +38,9 @@ app.get('/api/health', (req,res) => {
   res.json({ success: true, message: `Backend is running - ${Date.now()}` });
 })
 
+//Serve Card images in this link
+app.use('/images', express.static(path.join(__dirname, 'images')));
+//Serve public assets
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
