@@ -14,9 +14,11 @@ console.log('Tarot API initialized',import.meta.env.VITE_BACKEND_URL);
 export const tarotApi = createApi({
   reducerPath: 'tarotApi',
   baseQuery: fetchBaseQuery({ baseUrl: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api' }),
+  tagTypes: ['Card', 'Deck'], // 👈 declare tags
   endpoints: (builder) => ({
     getDecks: builder.query<TarotDeck[], void>({
       query: () => 'decks/',
+      providesTags: ['Deck'],
     }),
     getCards: builder.query<TarotCard[], { deck_id: string; category?: string }>({
       query: ({ deck_id, category }) => {
@@ -24,6 +26,13 @@ export const tarotApi = createApi({
         if (category) url += `&category=${category}`;
         return url;
       },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: 'Card' as const, id })),
+              { type: 'Card', id: 'LIST' },
+            ]
+          : [{ type: 'Card', id: 'LIST' }],
     }),
     updateCard: builder.mutation<TarotCard, Partial<TarotCard> & { id: string; image_file?: File }>({
       query: (data) => {
@@ -39,6 +48,10 @@ export const tarotApi = createApi({
           body: formData,
         };
       },
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Card', id }, // invalidate this card
+        { type: 'Card', id: 'LIST' }, // invalidate the list
+      ],
     }),
     updateDeck: builder.mutation<TarotDeck, Partial<TarotDeck> & { id: string }>({
       query: (data) => {
@@ -49,6 +62,7 @@ export const tarotApi = createApi({
           body: put,
         };
       },
+      invalidatesTags: ['Deck'],
     }),
   }),
 });
