@@ -24,7 +24,7 @@ const AdminHome: React.FC = () => {
                     </div>
                     <button
                         onClick={() => setIsAddModalOpen(true)}
-                        className="!rounded-button self-start sm:self-auto px-4 py-2 bg-primary text-white hover:bg-primary/90 transition-colors flex items-center gap-2 font-medium shadow-sm"
+                        className="!rounded-button self-start sm:self-auto px-4 py-2 bg-[#246596] text-white hover:bg-[#1d527a] transition-colors flex items-center gap-2 font-medium shadow-sm"
                     >
                         <span className="text-lg leading-none">+</span> Add New Deck
                     </button>

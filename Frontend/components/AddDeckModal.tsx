@@ -106,30 +106,31 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div
-        className="bg-white rounded-lg shadow-xl max-w-xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-lg shadow-xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-gray-200 mb-5">
-            <h2 className="text-xl font-semibold text-gray-900">Add New Deck</h2>
-            <button
-              onClick={onClose}
-              disabled={isLoading}
-              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
-            >
-              ✕
-            </button>
-          </div>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">Add New Deck</h2>
+          <button
+            onClick={onClose}
+            disabled={isLoading}
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
 
-          {/* Error message */}
-          {errorMessage && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
-              {errorMessage}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          {/* Scrollable Form Body */}
+          <div className="p-6 space-y-5 overflow-y-auto flex-1">
+            {/* Error message */}
+            {errorMessage && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+                {errorMessage}
+              </div>
+            )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Deck Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -140,7 +141,7 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({ isOpen, onClose }) => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Celestial Tarot"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#246596] focus:border-transparent text-sm"
                 required
               />
             </div>
@@ -155,7 +156,7 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({ isOpen, onClose }) => {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 placeholder="Brief description of the deck's theme, symbolism, or artwork..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm resize-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#246596] focus:border-transparent text-sm resize-none"
               />
             </div>
 
@@ -214,7 +215,7 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({ isOpen, onClose }) => {
                   value={imageUrl}
                   onChange={handleUrlChange}
                   placeholder="https://example.com/cover.jpg"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#246596] focus:border-transparent text-sm"
                 />
               )}
 
@@ -245,7 +246,11 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({ isOpen, onClose }) => {
                   checked={active}
                   onChange={(e) => setActive(e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                <div
+                  className={`w-11 h-6 ${
+                    active ? 'bg-green-500' : 'bg-gray-300'
+                  } peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500`}
+                ></div>
               </label>
             </div>
 
@@ -256,7 +261,7 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({ isOpen, onClose }) => {
                   type="checkbox"
                   checked={initializeCards}
                   onChange={(e) => setInitializeCards(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                  className="mt-0.5 h-4 w-4 text-[#246596] focus:ring-[#246596] border-gray-300 rounded"
                 />
                 <div>
                   <span className="text-sm font-medium text-gray-900 block">
@@ -268,34 +273,34 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({ isOpen, onClose }) => {
                 </div>
               </label>
             </div>
+          </div>
 
-            {/* Form Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={isLoading}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="px-5 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50"
-              >
-                {isLoading ? (
-                  <>
-                    <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    Creating Deck...
-                  </>
-                ) : (
-                  'Create Deck'
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
+          {/* Sticky Footer Form Actions */}
+          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isLoading}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="px-5 py-2.5 text-sm font-medium text-white bg-[#246596] hover:bg-[#1d527a] rounded-lg shadow-sm transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              {isLoading ? (
+                <>
+                  <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  Creating Deck...
+                </>
+              ) : (
+                'Create Deck'
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
