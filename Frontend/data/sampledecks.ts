@@ -1,13 +1,18 @@
 export interface TarotDeck {
-  id: string;
+  id: string | number;
   name: string;
   active: boolean;
-  totalCards: number;
-  majorArcana: number;
-  minorArcana: number;
-  image: string;
-  gradient: string;
-  backClass?:string;
+  description?: string;
+  image_url?: string;
+  total_cards?: string | number;
+  major_arcana?: string | number;
+  minor_arcana?: string | number;
+  totalCards?: number;
+  majorArcana?: number;
+  minorArcana?: number;
+  image?: string;
+  gradient?: string;
+  backClass?: string;
 }
 
 export const sampleDecks: TarotDeck[] = [
