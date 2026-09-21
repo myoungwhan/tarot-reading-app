@@ -1,13 +1,14 @@
 import DeckCard from "@/components/DeckCard";
 import Header from "@/components/Header";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import SystemStats from "@/components/SystemStats";
+import AddDeckModal from "@/components/AddDeckModal";
 import { useGetDecksQuery } from "@/services/api";
-import { useState, useEffect } from "react";
 
 const AdminHome: React.FC = () => {
     const { data: decks = [], isLoading, isError } = useGetDecksQuery();
     const [localDecks, setLocalDecks] = useState(decks);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     useEffect(() => {
         setLocalDecks(decks);
@@ -16,9 +17,17 @@ const AdminHome: React.FC = () => {
     return (
         <main className="px-6 py-8 bg-white">
             <section className="w-full">
-                <div className="mb-8 mt-10 max-w-[90vw] ml-auto">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Deck Management</h2>
-                    <p className="text-gray-600">Manage the activation status and card information of the five tarot decks.</p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 mt-10 max-w-[90vw] ml-auto">
+                    <div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Deck Management</h2>
+                        <p className="text-gray-600">Manage the activation status and card information of the tarot decks.</p>
+                    </div>
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="!rounded-button self-start sm:self-auto px-4 py-2 bg-primary text-white hover:bg-primary/90 transition-colors flex items-center gap-2 font-medium shadow-sm"
+                    >
+                        <span className="text-lg leading-none">+</span> Add New Deck
+                    </button>
                 </div>
                 {isLoading ? (
                     <div className="text-center py-8">Loading decks...</div>
@@ -40,6 +49,11 @@ const AdminHome: React.FC = () => {
                 )}
             </section>
             <SystemStats decks={localDecks} />
+
+            <AddDeckModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+            />
         </main>
     );
 }
