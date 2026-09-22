@@ -20,7 +20,7 @@ const io = new Server(server, {
 });
 app.use(cors({
   origin:"*",
-  methods: ['GET', 'POST', 'PUT'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }))
 
 

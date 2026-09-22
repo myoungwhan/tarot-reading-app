@@ -107,19 +107,113 @@ router.post('/', upload.single('image_file'), async (req, res) => {
   }
 });
 
-// Update deck details by id
-router.put('/:id', async (req, res) => {
+const BUILT_IN_DECKS = ['Universal Waite', 'Marseille', 'Thoth', 'Wild Unknown', 'Shadowscapes'];
+
+const deleteLocalImageIfExists = (imageUrl) => {
+  if (!imageUrl || typeof imageUrl !== 'string') return;
+  try {
+    const match = imageUrl.match(/\/images\/(deck_[a-zA-Z0-9_\-\.]+)/);
+    if (match && match[1]) {
+      const filePath = path.join(__dirname, '../images', match[1]);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to delete local image file:', err.message);
+  }
+};
+
+// Update deck details by id (supports JSON or multipart form with image_file)
+router.put('/:id', upload.single('image_file'), async (req, res) => {
   const { id } = req.params;
   try {
-    const [updated] = await Deck.update(req.body, { where: { id } });
-    if (updated) {
-      const updatedDeck = await Deck.findByPk(id);
-      return res.json(updatedDeck);
+    const deck = await Deck.findByPk(id);
+    if (!deck) {
+      if (req.file) {
+        try { fs.unlinkSync(req.file.path); } catch (_) {}
+      }
+      return res.status(404).json({ error: 'Deck not found' });
     }
-    res.status(404).json({ error: 'Deck not found' });
+
+    const updates = {};
+    if (req.body.name !== undefined) {
+      if (!req.body.name || !req.body.name.trim()) {
+        if (req.file) {
+          try { fs.unlinkSync(req.file.path); } catch (_) {}
+        }
+        return res.status(400).json({ error: 'Deck name cannot be empty' });
+      }
+      updates.name = req.body.name.trim();
+    }
+
+    if (req.body.description !== undefined) {
+      updates.description = req.body.description;
+    }
+
+    if (req.body.active !== undefined) {
+      updates.active = req.body.active === true || req.body.active === 'true';
+    }
+
+    if (req.file) {
+      const backendUrl = `${req.protocol}://${req.get('host')}`;
+      updates.image_url = `${backendUrl}/images/${req.file.filename}`;
+      // Clean up previous image if it was local
+      deleteLocalImageIfExists(deck.image_url);
+    } else if (req.body.image_url !== undefined && req.body.image_url.trim()) {
+      if (req.body.image_url.trim() !== deck.image_url) {
+        deleteLocalImageIfExists(deck.image_url);
+      }
+      updates.image_url = req.body.image_url.trim();
+    }
+
+    await deck.update(updates);
+    const updatedDeck = await Deck.findByPk(id);
+    return res.json(updatedDeck);
   } catch (err) {
+    if (req.file) {
+      try { fs.unlinkSync(req.file.path); } catch (_) {}
+    }
     console.error('Error updating deck:', err);
     res.status(500).json({ error: 'Failed to update deck' });
+  }
+});
+
+// Delete deck and all associated cards
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deck = await Deck.findByPk(id);
+    if (!deck) {
+      return res.status(404).json({ error: 'Deck not found' });
+    }
+
+    const isBuiltIn = BUILT_IN_DECKS.some(
+      builtIn => deck.name && deck.name.trim().toLowerCase() === builtIn.toLowerCase()
+    );
+    if (isBuiltIn) {
+      return res.status(403).json({ error: 'Built-in decks cannot be deleted.' });
+    }
+
+    const t = await sequelize.transaction();
+    try {
+      // Cascade delete cards
+      await Card.destroy({ where: { deck_id: id }, transaction: t });
+      // Delete deck
+      await Deck.destroy({ where: { id }, transaction: t });
+      await t.commit();
+    } catch (txErr) {
+      await t.rollback();
+      throw txErr;
+    }
+
+    // Clean up local image file if present
+    deleteLocalImageIfExists(deck.image_url);
+
+    return res.json({ success: true, message: 'Deck and associated cards deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting deck:', err);
+    res.status(500).json({ error: 'Failed to delete deck' });
   }
 });
 
