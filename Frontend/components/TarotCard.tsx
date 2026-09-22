@@ -60,7 +60,7 @@ export const TarotCard: React.FC<TarotCardProps> = ({ card, isFlipped, deckBackC
         >
           <div className={`w-full h-full bg-slate-800 rounded-lg flex flex-col items-center justify-center p-1 text-center transition-transform duration-300 ${card.isReversed ? 'rotate-180' : ''}`}>
              <img src={card.data.image_url} alt={card.data.name} className="w-[104px] h-[152px] object-cover rounded-md mb-1"/>
-            <p className="text-amber-100 text-xs font-serif">{card.data.name}</p>
+            <p className="text-amber-100 text-[11px] font-serif leading-tight">{card.data.name}</p>
           </div>
            {/* Render button on the front face */}
           {onFlip && <FlipButton />}

@@ -23,12 +23,12 @@ const AdminCard = ({ cardDetails }) => {
 
     return (
         <>
-            <section className="w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-                <div className="aspect-square bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center p-2">
+            <section className="w-full bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
+                <div className="aspect-[3/5] bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center p-2 rounded-t-lg overflow-hidden">
                     <img
-                        className="w-[300px] h-[500px] object-cover"
+                        className="w-full h-full object-contain"
                         src={currentCardDetails.image_url || currentCardDetails.image}
-                        alt=""
+                        alt={currentCardDetails.name}
                     />
                 </div>
                 <div className="p-5">
@@ -145,11 +145,11 @@ const CardEditModal = ({ open, cardData, onClose }) => {
 
                     <div className="space-y-6">
                         <div className="flex flex-col items-center space-y-4">
-                            <div className="w-[300px] h-[500px] bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg flex items-center justify-center relative group overflow-hidden">
+                            <div className="w-[300px] h-[500px] bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg flex items-center justify-center relative group overflow-hidden p-2">
                                 <img
                                     src={editCardData?.image_url}
                                     alt={editCardData?.name}
-                                    className="w-full h-full object-cover object-top rounded-lg"
+                                    className="w-full h-full object-contain rounded-lg"
                                 />
                                 <input
                                     type="file"

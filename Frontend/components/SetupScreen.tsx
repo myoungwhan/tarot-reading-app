@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { AlertCircle } from 'lucide-react';
 import { Settings, Role, DeckStyle } from '../types';
 import { addBackClassToDecks, DECK_STYLES, SPREADS } from '../constants';
 import { useGetDecksQuery } from '@/services/api';
@@ -16,7 +17,13 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
   const [settings, setSettings] = useState<Settings>(currentSettings);
   const isCounselor = role === 'counselor';
   const { data: decks = [], isLoading, isError } = useGetDecksQuery();
-    const [customCountValue, setCustomCountValue] = useState<string>(currentSettings.customCardCount.toString());
+  const [customCountValue, setCustomCountValue] = useState<string>(currentSettings.customCardCount.toString());
+
+  const maxAllowedCards = settings.cardSet === 'major' ? 22 : 78;
+  const parsedCustomCount = parseInt(customCountValue, 10);
+  const isCountExceeded = !isNaN(parsedCustomCount) && parsedCustomCount > maxAllowedCards;
+  const isCountTooLow = !isNaN(parsedCustomCount) && parsedCustomCount < 1;
+  const isCustomCountInvalid = isNaN(parsedCustomCount) || isCountExceeded || isCountTooLow;
 
   console.log('SetupScreen initialized with settings',decks);
 
@@ -33,8 +40,14 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
 
   const handleStart = () => {
     // Ensure the final settings are based on the input's current value.
-    const finalCount = parseInt(settings.customCardCount, 10);
-    const validCount = !isNaN(finalCount) && finalCount > 0 ? finalCount : 1;
+    const finalCount = parseInt(customCountValue, 10);
+    const maxAllowed = settings.cardSet === 'major' ? 22 : 78;
+    if (settings.spread.id === 'custom') {
+      if (isNaN(finalCount) || finalCount < 1 || finalCount > maxAllowed) {
+        return;
+      }
+    }
+    const validCount = !isNaN(finalCount) && finalCount > 0 ? Math.min(finalCount, maxAllowed) : 1;
     onComplete({ ...settings, customCardCount: validCount });
   };
 
@@ -161,9 +174,16 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
         </div>
 
         {settings.spread.id === 'custom' && (
-            <div className="bg-slate-700/50 p-4 rounded-lg">
-                <label htmlFor="custom-count" className="block text-lg font-medium text-amber-200 mb-2">{t.customSpreadLabel}</label>
-                 <input
+            <div className="bg-slate-700/50 p-5 rounded-xl border border-slate-600/50 transition-all">
+                <div className="flex justify-between items-center mb-2">
+                  <label htmlFor="custom-count" className="block text-lg font-medium text-amber-200">
+                    {t.customSpreadLabel}
+                  </label>
+                  <span className="text-xs sm:text-sm font-semibold text-amber-300/90 bg-slate-800 px-2.5 py-1 rounded-full border border-amber-300/30">
+                    {t.customSpreadMaxNotice(maxAllowedCards)}
+                  </span>
+                </div>
+                <input
                     type="number"
                     id="custom-count"
                     value={customCountValue}
@@ -171,8 +191,44 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
                     onBlur={handleCustomCountBlur}
                     disabled={!isCounselor}
                     min="1"
-                    className="w-full p-2 rounded-lg bg-slate-900 border border-slate-600 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none disabled:opacity-50"
-                 />
+                    max={maxAllowedCards}
+                    placeholder={`1 ~ ${maxAllowedCards}`}
+                    className={`w-full p-3 rounded-lg bg-slate-900 border outline-none disabled:opacity-50 transition-colors ${
+                      isCountExceeded || isCountTooLow
+                        ? 'border-red-500 focus:ring-2 focus:ring-red-400 text-red-100'
+                        : 'border-slate-600 focus:ring-2 focus:ring-amber-400 focus:border-amber-400'
+                    }`}
+                />
+                {isCountExceeded && (
+                  <div className="mt-3 p-3 rounded-lg bg-red-950/70 border border-red-500/60 flex items-center justify-between gap-2 text-red-200 text-sm animate-fade-in shadow-inner">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
+                      <span className="font-medium">
+                        {settings.cardSet === 'major'
+                          ? t.customCountMaxExceededMajor
+                          : t.customCountMaxExceededFull}
+                      </span>
+                    </div>
+                    {isCounselor && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomCountValue(maxAllowedCards.toString());
+                          setSettings(s => ({ ...s, customCardCount: maxAllowedCards }));
+                        }}
+                        className="px-2.5 py-1 text-xs font-semibold bg-red-800/80 hover:bg-red-700 text-white rounded border border-red-400/50 transition-colors whitespace-nowrap shadow-sm"
+                      >
+                        {language === 'ko' ? `${maxAllowedCards}장으로 맞추기` : `Set to ${maxAllowedCards}`}
+                      </button>
+                    )}
+                  </div>
+                )}
+                {isCountTooLow && (
+                  <div className="mt-3 p-3 rounded-lg bg-red-950/70 border border-red-500/60 flex items-center gap-2 text-red-200 text-sm animate-fade-in shadow-inner">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
+                    <span className="font-medium">{t.customCountMinNotice}</span>
+                  </div>
+                )}
             </div>
         )}
 
@@ -180,7 +236,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
         <div className="mt-12 text-center">
             <button
                 onClick={handleStart}
-                disabled={!isCounselor}
+                disabled={!isCounselor || (settings.spread.id === 'custom' && isCustomCountInvalid)}
                 className="px-12 py-4 bg-amber-500 text-slate-900 font-bold text-lg rounded-lg shadow-lg hover:bg-amber-400 transition-all transform hover:scale-105 disabled:bg-slate-600 disabled:cursor-not-allowed disabled:scale-100"
             >
                 {t.startButton}
