@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SpreadDefinition, CardInstance, PlacedCard, Role } from '../types';
 import { TarotCard } from './TarotCard';
+import { translations } from '@/translations';
 
 interface ReadingScreenProps {
   spread: SpreadDefinition;
@@ -11,8 +12,10 @@ interface ReadingScreenProps {
   onReset: () => void;
   role: Role;
   deckBackClass: string;
+  deckImage?: string;
   onRequestAddMoreCards: () => void;
   remainingDeckSize: number;
+  language: 'ko' | 'en';
 }
 
 const ReadingScreen: React.FC<ReadingScreenProps> = ({
@@ -23,8 +26,10 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({
   onReset,
   role,
   deckBackClass,
+  deckImage,
   onRequestAddMoreCards,
   remainingDeckSize,
+  language
 }) => {
   const [unplacedCards, setUnplacedCards] = useState<CardInstance[]>([]);
   const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
@@ -34,6 +39,7 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({
   const isCounselor = role === 'counselor';
   const processedCardIds = useRef(new Set<string>());
   const isCustomSpread = spread.id === 'custom';
+  const t = translations[language];
 
   const pinchDistanceRef = useRef<number | null>(null);
   const lastTouchPointRef = useRef<{ x: number; y: number } | null>(null);
@@ -286,13 +292,13 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({
     <div className="w-full h-[85vh] flex flex-col" onWheel={handleWheel}>
       <div className="flex-shrink-0 p-3 bg-slate-900/70 rounded-t-lg flex items-center justify-between z-10">
         <div>
-          <h3 className="text-xl font-bold text-amber-300 font-serif">{spread.name}</h3>
-          <p className="text-sm text-slate-400">{isCounselor ? 'You are in control. Use mouse/touch to interact.' : 'The counselor is conducting the reading.'}</p>
+          <h3 className="text-xl font-bold text-amber-300 font-serif">{spread.name[language]}</h3>
+           <p className="hidden sm:block text-xs text-slate-400">{isCounselor ? t.counselorInControl : t.counselorIsReading}</p>
         </div>
         <div className="flex items-center space-x-2">
-            <button onClick={() => isCounselor && onRequestAddMoreCards()} disabled={!isCounselor || remainingDeckSize < 1} className="px-3 py-2 text-sm bg-slate-700 hover:bg-slate-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">Add 1 Card</button>
-            <button onClick={flipAll} disabled={!isCounselor} className="px-3 py-2 text-sm bg-slate-700 hover:bg-slate-600 rounded-md disabled:opacity-50">Flip All</button>
-            <button onClick={() => isCounselor && onReset()} disabled={!isCounselor} className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-md disabled:opacity-50">Reset Session</button>
+            <button onClick={() => isCounselor && onRequestAddMoreCards()} disabled={!isCounselor || remainingDeckSize < 1} className="px-2 py-1 text-xs sm:px-3 sm:py-2 sm:text-sm bg-slate-700 hover:bg-slate-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">{t.addCardButton}</button>
+            <button onClick={flipAll} disabled={!isCounselor} className="px-2 py-1 text-xs sm:px-3 sm:py-2 sm:text-sm bg-slate-700 hover:bg-slate-600 rounded-md disabled:opacity-50">{t.flipAllButton}</button>
+            <button onClick={() => isCounselor && onReset()} disabled={!isCounselor} className="px-3 py-1 text-xs sm:px-4 sm:py-2 sm:text-sm bg-red-600 hover:bg-red-500 text-white font-semibold rounded-md disabled:opacity-50">{t.resetButton}</button>
         </div>
       </div>
       
@@ -320,7 +326,7 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({
               transform: `translate(-50%, -50%) rotate(${p.rotation}deg)`,
               pointerEvents: 'none',
             }}>
-              <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-slate-500 text-sm whitespace-nowrap">{p.position}. {p.label}</span>
+              <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-slate-500 text-sm whitespace-nowrap">{p.position}. {p.label[language]}</span>
             </div>
           ))}
 
@@ -346,6 +352,7 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({
                     card={card}
                     isFlipped={card.isFlipped}
                     deckBackClass={deckBackClass}
+                    deckImage={deckImage}
                     showNumber={card.selectionIndex}
                     onFlip={isCounselor ? () => flipCard(card.id) : undefined}
                 />
@@ -356,7 +363,7 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({
       
       {unplacedCards.length > 0 && isCounselor && (
          <div className="flex-shrink-0 mt-4 p-3 bg-slate-900/70 rounded-lg">
-            <h4 className="text-lg font-semibold text-amber-200 mb-2">Unplaced Cards (Click to place on board)</h4>
+            <h4 className="text-lg font-semibold text-amber-200 mb-2">{t.unplacedCardsTitle}</h4>
             <div className="flex items-center justify-center min-h-[120px]">
                 <div className="relative h-[100px]" style={{ width: `${unplacedCards.length > 0 ? 60 + (unplacedCards.length - 1) * 30 : 0}px`, transition: 'width 0.3s ease' }}>
                     {unplacedCards.map((card, index) => (
@@ -377,6 +384,7 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({
                                     card={card}
                                     isFlipped={false}
                                     deckBackClass={deckBackClass}
+                                    deckImage={deckImage}
                                     showNumber={card.selectionIndex}
                                 />
                             </div>

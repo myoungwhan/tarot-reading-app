@@ -53,15 +53,19 @@ export const tarotApi = createApi({
         { type: 'Card', id: 'LIST' }, // invalidate the list
       ],
     }),
-    updateDeck: builder.mutation<TarotDeck, Partial<TarotDeck> & { id: string | number }>({
-      query: (data) => {
-        const { id, ...put } = data;
-        return {
-          url: `decks/${id}`,
-          method: 'PUT',
-          body: put,
-        };
-      },
+    updateDeck: builder.mutation<TarotDeck, { id: string | number; formData?: FormData; [key: string]: any }>({
+      query: ({ id, formData, ...put }) => ({
+        url: `decks/${id}`,
+        method: 'PUT',
+        body: formData || put,
+      }),
+      invalidatesTags: ['Deck'],
+    }),
+    deleteDeck: builder.mutation<{ success: boolean; message: string }, string | number>({
+      query: (id) => ({
+        url: `decks/${id}`,
+        method: 'DELETE',
+      }),
       invalidatesTags: ['Deck'],
     }),
     createDeck: builder.mutation<TarotDeck, FormData>({
@@ -75,4 +79,11 @@ export const tarotApi = createApi({
   }),
 });
 
-export const { useGetDecksQuery, useGetCardsQuery, useUpdateCardMutation, useUpdateDeckMutation, useCreateDeckMutation } = tarotApi;
+export const {
+  useGetDecksQuery,
+  useGetCardsQuery,
+  useUpdateCardMutation,
+  useUpdateDeckMutation,
+  useDeleteDeckMutation,
+  useCreateDeckMutation
+} = tarotApi;

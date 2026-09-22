@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Settings, Role, DeckStyle } from '../types';
 import { addBackClassToDecks, DECK_STYLES, SPREADS } from '../constants';
 import { useGetDecksQuery } from '@/services/api';
+import { translations } from '../translations';
 
 interface SetupScreenProps {
   onComplete: (settings: Settings) => void;
   currentSettings: Settings;
   role: Role;
+  language: 'ko' | 'en';
 }
 
-const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, role }) => {
+const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, role, language }) => {
+  const t = translations[language];
   const [settings, setSettings] = useState<Settings>(currentSettings);
   const isCounselor = role === 'counselor';
   const { data: decks = [], isLoading, isError } = useGetDecksQuery();
@@ -17,10 +20,16 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
 
   console.log('SetupScreen initialized with settings',decks);
 
-  const updatedDecks = addBackClassToDecks(decks).filter(deck => deck.active);
+  const updatedDecks = useMemo(
+    () => addBackClassToDecks(decks).filter(deck => deck.active),
+    [decks]
+  );
 
-  //By Default the selected Deck will be Universal Waite
-  const defaultDeck = updatedDecks?.find((deck) => deck.name === "Universal Waite");
+  // By Default the selected Deck will be Universal Waite or first active deck
+  const defaultDeck = useMemo(
+    () => updatedDecks?.find((deck) => deck.name === "Universal Waite") || updatedDecks?.[0],
+    [updatedDecks]
+  );
 
   const handleStart = () => {
     // Ensure the final settings are based on the input's current value.
@@ -52,12 +61,32 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
   };
 
   useEffect(() => {
-    setSettings((prevSettings) => ({...prevSettings, deckStyle:defaultDeck.id, deckBackClass: defaultDeck.backClass}))
-  },[])
+    if (defaultDeck) {
+      setSettings((prev) => {
+        const hasValidSelection = updatedDecks.some(
+          (d) => String(d.id) === String(prev.deckStyle)
+        );
+        if (hasValidSelection) return prev;
+        const isBuiltIn = DECK_STYLES.some(s => s.name.toLowerCase() === defaultDeck.name?.toLowerCase());
+        return {
+          ...prev,
+          deckStyle: defaultDeck.id,
+          deckBackClass: defaultDeck.backClass || 'card-back-waite',
+          deckImage: isBuiltIn ? undefined : (defaultDeck.image_url || defaultDeck.image || undefined),
+        };
+      });
+    }
+  }, [defaultDeck?.id, updatedDecks]);
 
-  const handleDeckStyleChange = (deck: {id: DeckStyle, name: string, backClass: string}) => {
+  const handleDeckStyleChange = (deck: { id: any; name: string; backClass?: string; image_url?: string; image?: string }) => {
     if (!isCounselor) return;
-    setSettings(s => ({ ...s, deckStyle: deck.id, deckBackClass: deck.backClass }));
+    const isBuiltIn = DECK_STYLES.some(s => s.name.toLowerCase() === deck.name?.toLowerCase());
+    setSettings(s => ({
+      ...s,
+      deckStyle: deck.id,
+      deckBackClass: deck.backClass || 'card-back-waite',
+      deckImage: isBuiltIn ? undefined : (deck.image_url || deck.image || undefined),
+    }));
   };
 
   const setSpread = (spreadId: string) => {
@@ -68,13 +97,13 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
 
   return (
     <div className="w-full max-w-4xl mx-auto p-8 bg-slate-800/50 rounded-2xl shadow-2xl border border-slate-700 animate-fade-in">
-      <h2 className="text-3xl font-bold text-center text-amber-300 mb-6 font-serif">Session Setup</h2>
-      <p className="text-center text-slate-400 mb-8">Counselor, please configure the reading session.</p>
+      <h2 className="text-3xl font-bold text-center text-amber-300 mb-6 font-serif">{t.setupTitle}</h2>
+      <p className="text-center text-slate-400 mb-8">{t.setupDescription}</p>
 
       <div className="space-y-8">
         {/* Deck Style */}
         <div>
-          <label className="block text-lg font-medium text-amber-200 mb-3">1. Choose Your Deck Style</label>
+          <label className="block text-lg font-medium text-amber-200 mb-3">{t.deckStyleLabel}</label>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {updatedDecks.map(deck => (
               <button
@@ -83,8 +112,11 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
                 disabled={!isCounselor}
                 className={`p-4 rounded-lg text-white font-semibold transition-all duration-200 border-2 flex flex-col items-center justify-center space-y-2 ${settings.deckStyle === deck.id ? 'border-amber-400 scale-105 shadow-lg' : 'border-transparent hover:border-amber-400/50'} bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                <span>{deck.name}</span>
-                <div className={`w-12 h-20 rounded ${deck.backClass} border border-amber-200/20`}></div>
+                <span >{deck.name}</span>
+                <div 
+                  className={`w-12 h-20 rounded ${deck.backClass || ''} border border-amber-200/20`}
+                  style={!deck.backClass && (deck.image_url || deck.image) ? { backgroundImage: `url(${deck.image_url || deck.image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+                ></div>
               </button>
             ))}
           </div>
@@ -93,16 +125,16 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
         {/* Card Set & Reversals */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-                <label className="block text-lg font-medium text-amber-200 mb-3">2. Choose Card Set</label>
+                <label className="block text-lg font-medium text-amber-200 mb-3">{t.cardSetLabel}</label>
                 <div className="flex space-x-4">
-                    <button onClick={() => isCounselor && setSettings(s => ({...s, cardSet: 'major'}))} disabled={!isCounselor} className={`flex-1 p-3 rounded-lg transition-colors ${settings.cardSet === 'major' ? 'bg-amber-400 text-slate-900' : 'bg-slate-700 hover:bg-slate-600'} disabled:opacity-50`}>22 Major Arcana</button>
-                    <button onClick={() => isCounselor && setSettings(s => ({...s, cardSet: 'full'}))} disabled={!isCounselor} className={`flex-1 p-3 rounded-lg transition-colors ${settings.cardSet === 'full' ? 'bg-amber-400 text-slate-900' : 'bg-slate-700 hover:bg-slate-600'} disabled:opacity-50`}>78 Full Deck</button>
+                    <button onClick={() => isCounselor && setSettings(s => ({...s, cardSet: 'major'}))} disabled={!isCounselor} className={`flex-1 p-3 rounded-lg transition-colors ${settings.cardSet === 'major' ? 'bg-amber-400 text-slate-900' : 'bg-slate-700 hover:bg-slate-600'} disabled:opacity-50`}>{t.majorArcana}</button>
+                    <button onClick={() => isCounselor && setSettings(s => ({...s, cardSet: 'full'}))} disabled={!isCounselor} className={`flex-1 p-3 rounded-lg transition-colors ${settings.cardSet === 'full' ? 'bg-amber-400 text-slate-900' : 'bg-slate-700 hover:bg-slate-600'} disabled:opacity-50`}>{t.fullDeck}</button>
                 </div>
             </div>
             <div>
-                <label className="block text-lg font-medium text-amber-200 mb-3">Include Reversed Cards?</label>
+                <label className="block text-lg font-medium text-amber-200 mb-3">{t.reversalsLabel}</label>
                 <button onClick={() => isCounselor && setSettings(s => ({ ...s, useReversals: !s.useReversals }))} disabled={!isCounselor} className="w-full p-3 rounded-lg bg-slate-700 flex items-center justify-between disabled:opacity-50">
-                    <span>{settings.useReversals ? 'Yes, include reversals' : 'No, only upright'}</span>
+                    <span>{settings.useReversals ? t.reversalsYes : t.reversalsNo}</span>
                     <div className={`w-12 h-6 rounded-full flex items-center transition-colors ${settings.useReversals ? 'bg-amber-400' : 'bg-slate-600'}`}>
                         <span className={`block w-5 h-5 bg-white rounded-full transition-transform transform ${settings.useReversals ? 'translate-x-6' : 'translate-x-1'}`}></span>
                     </div>
@@ -112,7 +144,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
 
         {/* Spread Selection */}
         <div>
-          <label className="block text-lg font-medium text-amber-200 mb-3">3. Choose Your Spread</label>
+          <label className="block text-lg font-medium text-amber-200 mb-3">{t.spreadLabel}</label>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {Object.values(SPREADS).map(spread => (
               <button
@@ -121,8 +153,8 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
                 disabled={!isCounselor}
                 className={`p-3 rounded-lg text-center transition-colors ${settings.spread.id === spread.id ? 'bg-amber-400 text-slate-900' : 'bg-slate-700 hover:bg-slate-600'} disabled:opacity-50`}
               >
-                <p className="font-semibold">{spread.name}</p>
-                <p className="text-xs">{spread.id !== 'custom' ? `${spread.cardCount} cards` : 'User defined'}</p>
+                <p className="font-semibold">{spread.name[language]}</p>
+                <p className="text-xs">{spread.id !== 'custom' ? `${spread.cardCount} ${t.cardsUnit}` : t.userDefined}</p>
               </button>
             ))}
           </div>
@@ -130,7 +162,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
 
         {settings.spread.id === 'custom' && (
             <div className="bg-slate-700/50 p-4 rounded-lg">
-                <label htmlFor="custom-count" className="block text-lg font-medium text-amber-200 mb-2">Custom Spread Card Count</label>
+                <label htmlFor="custom-count" className="block text-lg font-medium text-amber-200 mb-2">{t.customSpreadLabel}</label>
                  <input
                     type="number"
                     id="custom-count"
@@ -151,7 +183,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, currentSettings, 
                 disabled={!isCounselor}
                 className="px-12 py-4 bg-amber-500 text-slate-900 font-bold text-lg rounded-lg shadow-lg hover:bg-amber-400 transition-all transform hover:scale-105 disabled:bg-slate-600 disabled:cursor-not-allowed disabled:scale-100"
             >
-                Start Session
+                {t.startButton}
             </button>
         </div>
 

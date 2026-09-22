@@ -6,12 +6,13 @@ interface TarotCardProps {
   card: CardInstance | PlacedCard;
   isFlipped: boolean;
   deckBackClass: string;
+  deckImage?: string;
   onFlip?: () => void;
   style?: React.CSSProperties;
   showNumber?: number;
 }
 
-export const TarotCard: React.FC<TarotCardProps> = ({ card, isFlipped, deckBackClass, onFlip, style, showNumber }) => {
+export const TarotCard: React.FC<TarotCardProps> = ({ card, isFlipped, deckBackClass, deckImage, onFlip, style, showNumber }) => {
   // Use onMouseDown and stop propagation to prevent triggering drag events on the parent.
   const handleFlipClick = (e: React.MouseEvent) => {
     e.stopPropagation(); 
@@ -42,6 +43,7 @@ export const TarotCard: React.FC<TarotCardProps> = ({ card, isFlipped, deckBackC
         {/* Card Back */}
         <div 
           className={`card-face shadow-lg border-2 border-amber-200/50 flex items-center justify-center p-2 ${deckBackClass}`}
+          style={deckImage ? { backgroundImage: `url(${deckImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
         >
           <div className="w-full h-full border-2 border-amber-200/50 rounded-lg flex items-center justify-center">
              {showNumber && !isFlipped && (
@@ -54,10 +56,10 @@ export const TarotCard: React.FC<TarotCardProps> = ({ card, isFlipped, deckBackC
         
         {/* Card Front */}
         <div 
-          className="card-face card-face-front bg-slate-900 shadow-lg border-2 border-amber-300 p-2" 
+          className="card-face card-face-front bg-slate-900 shadow-lg border-2 border-amber-300 p-1" 
         >
-          <div className={`w-full h-full bg-slate-800 rounded-lg flex flex-col items-center justify-center p-2 text-center transition-transform duration-300 ${card.isReversed ? 'rotate-180' : ''}`}>
-             <img src={card.data.image_url} alt={card.data.name} className="w-[90px] h-[130px] object-cover rounded-md mb-2"/>
+          <div className={`w-full h-full bg-slate-800 rounded-lg flex flex-col items-center justify-center p-1 text-center transition-transform duration-300 ${card.isReversed ? 'rotate-180' : ''}`}>
+             <img src={card.data.image_url} alt={card.data.name} className="w-[104px] h-[152px] object-cover rounded-md mb-1"/>
             <p className="text-amber-100 text-xs font-serif">{card.data.name}</p>
           </div>
            {/* Render button on the front face */}

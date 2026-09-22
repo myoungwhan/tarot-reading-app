@@ -3,12 +3,17 @@ import Header from "@/components/Header";
 import React, { useState, useEffect } from "react";
 import SystemStats from "@/components/SystemStats";
 import AddDeckModal from "@/components/AddDeckModal";
+import EditDeckModal from "@/components/EditDeckModal";
+import DeleteDeckModal from "@/components/DeleteDeckModal";
 import { useGetDecksQuery } from "@/services/api";
+import type { TarotDeck } from "@/data/sampledecks";
 
 const AdminHome: React.FC = () => {
     const { data: decks = [], isLoading, isError } = useGetDecksQuery();
     const [localDecks, setLocalDecks] = useState(decks);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [editingDeck, setEditingDeck] = useState<TarotDeck | null>(null);
+    const [deletingDeck, setDeletingDeck] = useState<TarotDeck | null>(null);
 
     useEffect(() => {
         setLocalDecks(decks);
@@ -24,7 +29,7 @@ const AdminHome: React.FC = () => {
                     </div>
                     <button
                         onClick={() => setIsAddModalOpen(true)}
-                        className="!rounded-button self-start sm:self-auto px-4 py-2 bg-[#246596] text-white hover:bg-[#1d527a] transition-colors flex items-center gap-2 font-medium shadow-sm"
+                        className="rounded-lg self-start sm:self-auto px-4 py-2 bg-[#246596] text-white hover:bg-[#1d527a] transition-colors flex items-center gap-2 font-medium shadow-sm"
                     >
                         <span className="text-lg leading-none">+</span> Add New Deck
                     </button>
@@ -42,6 +47,8 @@ const AdminHome: React.FC = () => {
                                     onStatusChange={(newActive) => {
                                         setLocalDecks((prev) => prev.map((d, i) => i === idx ? { ...d, active: newActive } : d));
                                     }}
+                                    onEdit={(d) => setEditingDeck(d)}
+                                    onDelete={(d) => setDeletingDeck(d)}
                                 />
                             </div>
                         ))}
@@ -53,6 +60,18 @@ const AdminHome: React.FC = () => {
             <AddDeckModal
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
+            />
+
+            <EditDeckModal
+                isOpen={!!editingDeck}
+                deck={editingDeck}
+                onClose={() => setEditingDeck(null)}
+            />
+
+            <DeleteDeckModal
+                isOpen={!!deletingDeck}
+                deck={deletingDeck}
+                onClose={() => setDeletingDeck(null)}
             />
         </main>
     );

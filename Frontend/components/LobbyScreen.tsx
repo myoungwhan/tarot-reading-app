@@ -1,3 +1,4 @@
+import { translations } from '@/translations';
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -5,11 +6,13 @@ interface LobbyScreenProps {
   onStartCounselor: () => void;
   onJoinQuerent: (code: string) => void;
   errorMessage: string;
+language: 'ko' | 'en';
 }
 
-const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuerent, errorMessage }) => {
+const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuerent, errorMessage, language }) => {
   const location = useLocation();
   const [code, setCode] = useState('');
+  const t = translations[language];
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,31 +23,32 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuere
 
   return (
     <div className="w-full max-w-4xl mx-auto p-8 flex flex-col items-center justify-center animate-fade-in">
-      <h2 className="text-4xl font-bold text-center text-amber-300 mb-6 font-serif">Welcome to Interactive Tarot</h2>
-      <p className="text-center text-slate-400 mb-12">Choose your role to begin the session.</p>
+      <h2 className="text-4xl font-bold text-center text-amber-300 mb-6 font-serif">{t.lobbyWelcome}</h2>
+      <p className="text-center text-slate-400 mb-12">{t.lobbyDescription}</p>
 
       <div className="w-full grid md:grid-cols-2 gap-8">
         {/* Counselor Panel */}
         <div className="bg-slate-800/50 p-8 rounded-2xl shadow-2xl border border-slate-700 flex flex-col items-center">
-          <h3 className="text-2xl font-serif text-amber-200 mb-4">For Counselors</h3>
-          <p className="text-center text-slate-400 mb-6">Start a new session to generate a unique 4-digit code for your querent.</p>
+          <h3 className="text-2xl font-serif text-amber-200 mb-4">{t.counselorTitle}</h3>
+          <p className="text-center text-slate-400 mb-6">{t.counselorDescription}</p>
           <button
             disabled={location.pathname === "/querents"}
             onClick={onStartCounselor}
             className="px-8 py-3 bg-amber-500 text-slate-900 font-bold text-lg rounded-lg shadow-lg hover:bg-amber-400 transition-all transform hover:scale-105 disabled:bg-slate-600 disabled:cursor-not-allowed disabled:scale-100"
           >
-            Start New Session
+            {t.counselorButton}
           </button>
         </div>
 
         {/* Querent Panel */}
         <div className="bg-slate-800/50 p-8 rounded-2xl shadow-2xl border border-slate-700 flex flex-col items-center">
-          <h3 className="text-2xl font-serif text-amber-200 mb-4">For Querents</h3>
-          <p className="text-center text-slate-400 mb-6">Enter the 4-digit code provided by your counselor to join the session.</p>
+          <h3 className="text-2xl font-serif text-amber-200 mb-4">{t.querentTitle}</h3>
+         <p className="text-center text-slate-400 mb-6">{t.querentDescription}</p>
           <form onSubmit={handleJoin} className="w-full flex flex-col items-center">
             <input
               type="text"
               value={code}
+              disabled={location.pathname === "/"}
               onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
               maxLength={4}
               placeholder="1234"
@@ -52,10 +56,10 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuere
             />
             <button
               type="submit"
-              disabled={code.length !== 4}
+              disabled={code.length !== 4 || location.pathname === "/"}
               className="px-8 py-3 bg-teal-500 text-slate-900 font-bold text-lg rounded-lg shadow-lg hover:bg-teal-400 transition-all transform hover:scale-105 disabled:bg-slate-600 disabled:cursor-not-allowed disabled:scale-100"
             >
-              Join Session
+              {t.querentButton}
             </button>
           </form>
         </div>
@@ -66,9 +70,9 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuere
       )}
 
       <div className="mt-12 text-center text-slate-500 max-w-2xl">
-          <h4 className="font-bold mb-2">How it works:</h4>
-          <p className="text-sm">
-           This application uses a real-time socket connection to sync the session between the counselor and the querent. The counselor starts a session, shares the session code, and the querent enters that code to connect. Once connected, both users can view the reading and interact in real-time, even from different devices and locations.
+          <h4 className="font-bold mb-2">{t.howItWorksTitle}</h4>
+          <p className="text-sm whitespace-pre-line">
+           {t.howItWorksDescription}
           </p>
       </div>
       

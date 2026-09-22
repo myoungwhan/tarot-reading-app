@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CardInstance, Role } from '../types';
 import { TarotCard } from './TarotCard';
+import { translations } from '@/translations';
 
 interface SelectionScreenProps {
   deck: CardInstance[];
@@ -10,10 +11,12 @@ interface SelectionScreenProps {
   count: number;
   role: Role;
   deckBackClass: string;
+  deckImage?: string;
   prompt?: string;
+  language: 'ko' | 'en';
 }
 
-const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected, count, role, deckBackClass, prompt }) => {
+const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected, count, role, deckBackClass, deckImage, prompt, language }) => {
   const [selected, setSelected] = useState<CardInstance[]>([]);
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
   const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
@@ -23,6 +26,7 @@ const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected
   const pinchDistanceRef = useRef<number | null>(null);
   const lastTouchPointRef = useRef<{ x: number, y: number } | null>(null);
   const hoverClearTimerRef = useRef<number | null>(null);
+  const t = translations[language];
 
   const unselectedDeck = deck.filter(d => !selected.some(s => s.id === d.id));
 
@@ -194,7 +198,7 @@ const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected
         hoverClearTimerRef.current = window.setTimeout(() => {
           setHoveredCardId(null);
           hoverClearTimerRef.current = null;
-        }, 1000); // Keep hovered for 1 second.
+        }, 1500); // Keep hovered for 1 second.
       }
       
       if (e.touches.length < 2) {
@@ -215,10 +219,10 @@ const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected
   return (
     <div className="w-full h-full flex flex-col items-center justify-start">
       <div className="flex-shrink-0 py-4 text-center">
-        <h2 className="text-3xl font-bold text-amber-300 mb-2 font-serif">
-          {prompt || (isQuerent ? `Please Select ${count} Card(s)` : 'Waiting for Querent to Select Cards')}
+         <h2 className="text-xl sm:text-2xl font-bold text-amber-300 mb-1 sm:mb-2 font-serif">
+          {prompt || (isQuerent ? t.selectCardsPrompt(count) : t.waitingForQuerent)}
         </h2>
-        <p className="text-slate-400">Selected: <span className="text-amber-300 text-xl">{selected.length} / {count}</span>. Use mouse wheel or pinch to zoom.</p>
+        <p className="text-xs sm:text-sm text-slate-400">{t.selectedCount(selected.length, count)} {t.zoomInstruction}</p>
       </div>
       
       {/* Fan Area */}
@@ -266,6 +270,7 @@ const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected
                             card={card}
                             isFlipped={false}
                             deckBackClass={deckBackClass}
+                            deckImage={deckImage}
                         />
                     </div>
                 );
@@ -275,22 +280,22 @@ const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected
       </div>
 
       {/* Selected Cards Area */}
-      <div className="flex-shrink-0 w-full h-[140px] flex items-center justify-center p-4 bg-slate-900/40 border-t-2 border-slate-700">
-        <div className="relative h-[100px]" style={{ width: `${selected.length > 0 ? 60 + (selected.length - 1) * 6 : 300}px`, transition: 'width 0.3s ease' }}>
+      <div className="flex-shrink-0 w-full h-[60px] flex items-center justify-center p-1 bg-slate-900/40 border-t-2 border-slate-700">
+        <div className="relative h-[50px]" style={{ width: `${selected.length > 0 ? 30 + (selected.length - 1) * 15 : 300}px`, transition: 'width 0.3s ease' }}>
           {selected.length === 0 && (
             <div className="flex items-center justify-center h-full w-full border-2 border-dashed border-slate-600 rounded-xl">
-              <p className="text-slate-500">Your selected cards appear here</p>
+               <p className="text-slate-500">{t.selectedCardsAppearHere}</p>
             </div>
           )}
           {selected.map((card, index) => (
             <div
               key={card.id}
               className="absolute transition-all duration-500 ease-out"
-              style={{
+               style={{
                 top: 0,
-                left: `${index * 6}px`, 
+                left: `${index * 15}px`, 
                 zIndex: index,
-                transform: 'scale(0.5)',
+                transform: 'scale(0.25)',
                 transformOrigin: 'top left',
               }}
             >
@@ -298,6 +303,7 @@ const SelectionScreen: React.FC<SelectionScreenProps> = ({ deck, onCardsSelected
                 card={card}
                 isFlipped={false}
                 deckBackClass={deckBackClass}
+                deckImage={deckImage}
                 showNumber={card.selectionIndex}
               />
             </div>

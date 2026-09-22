@@ -19,17 +19,17 @@ export interface PlacedCard extends CardInstance {
 
 export interface SpreadLayoutPoint {
   position: number;
-  label: string;
+ label: { en: string; ko: string };
   x: number;
   y: number;
   rotation: number;
 }
 
 export interface SpreadDefinition {
-  id: string;
-  name: string;
-  cardCount: number;
-  layout: SpreadLayoutPoint[];
+    id: string;
+    name: { en: string; ko: string };
+    cardCount: number;
+    layout: SpreadLayoutPoint[];
 }
 
 export type DeckStyle = 'universal-waite' | 'marseille' | 'thoth' | 'wild-unknown' | 'shadowscapes';
@@ -39,8 +39,9 @@ export type Role = 'counselor' | 'querent';
 export type GameStep = 'lobby' | 'setup' | 'shuffling' | 'selecting' | 'reading';
 
 export interface Settings {
-  deckStyle: DeckStyle;
+  deckStyle: DeckStyle | string | number;
   deckBackClass: string;
+  deckImage?: string;
   cardSet: 'major' | 'full';
   useReversals: boolean;
   spread: SpreadDefinition;

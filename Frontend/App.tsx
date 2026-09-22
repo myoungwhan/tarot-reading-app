@@ -9,11 +9,14 @@ import ReadingScreen from './components/ReadingScreen';
 import { socket } from './services/socket';
 import { useGetDecksQuery, useGetCardsQuery } from './services/api';
 import _ from 'lodash';
+import { translations } from './translations';
+import QuerentWaitingScreen from './components/QuerentWaitingScreen';
 
 const App: React.FC = () => {
 
   const [sessionState, setSessionState] = useState<SessionState>({
     step: 'lobby',
+    language: 'ko',
     settings: {
       deckStyle: 'universal-waite',
       deckBackClass: 'card-back-waite',
@@ -82,6 +85,16 @@ const App: React.FC = () => {
       socket.off('stateUpdate');
     };
   }, []);
+
+  const handleLanguageChange = (lang: 'ko' | 'en') => {
+        // If we're in a session, only the counselor can change it.
+        if (role === 'querent') return;
+
+        setSessionState(current => {
+            const newState = { ...current, language: lang };
+            return newState;
+        });
+    };
 
 
   // Only the counselor emits state updates for global transitions
@@ -227,17 +240,25 @@ const App: React.FC = () => {
   };
 
   const renderStep = () => {
-    const { step, settings, deck, selectedCards, isAddingMore, placedCards, showConfetti } = sessionState;
+    const { step, settings, deck, selectedCards, isAddingMore, placedCards, showConfetti, language } = sessionState;
+    const t = translations[language]
 
     switch (step) {
       case 'lobby':
-        return <LobbyScreen onStartCounselor={handleStartCounselorSession} onJoinQuerent={handleJoinQuerentSession} errorMessage={errorMessage} />;
+        return <LobbyScreen onStartCounselor={handleStartCounselorSession} onJoinQuerent={handleJoinQuerentSession} errorMessage={errorMessage} language={language} />;
       case 'setup':
-        return <SetupScreen onComplete={handleSetupComplete} currentSettings={settings} role={role!} />;
+        if(role === 'querent') {
+            return <QuerentWaitingScreen deckBackClass={settings.deckBackClass} deckImage={settings.deckImage} language={language} />
+        }
+        return <SetupScreen onComplete={handleSetupComplete} currentSettings={settings} role={role!} language={language}/>;
       case 'shuffling':
-        return <ShuffleScreen onShuffleComplete={handleShuffleComplete} showConfetti={showConfetti} role={role!} deckBackClass={settings.deckBackClass} />;
+        return <ShuffleScreen onShuffleComplete={handleShuffleComplete} showConfetti={showConfetti} role={role!} deckBackClass={settings.deckBackClass} deckImage={settings.deckImage} language={language} />;
       case 'selecting':
-        return <SelectionScreen deck={deck} onCardsSelected={handleCardsSelected} count={settings.spread.id === 'custom' ? settings.customCardCount : settings.spread.cardCount} role={role!} deckBackClass={settings.deckBackClass} />;
+        return (
+        <div className="w-full h-[85vh]">
+            <SelectionScreen deck={deck} onCardsSelected={handleCardsSelected} count={settings.spread.id === 'custom' ? settings.customCardCount : settings.spread.cardCount} role={role!} deckBackClass={settings.deckBackClass} deckImage={settings.deckImage} language={language} />
+        </div>
+        );
       case 'reading':
         return (
           <div className="relative w-full h-full">
@@ -249,8 +270,10 @@ const App: React.FC = () => {
               onReset={handleReset}
               role={role!}
               deckBackClass={settings.deckBackClass}
+              deckImage={settings.deckImage}
               onRequestAddMoreCards={handleRequestAddMoreCards}
               remainingDeckSize={deck.length}
+              language={language}
             />
             {isAddingMore && (
               <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex flex-col">
@@ -260,7 +283,10 @@ const App: React.FC = () => {
                   count={1}
                   role={role!}
                   deckBackClass={settings.deckBackClass}
-                  prompt={role === 'querent' ? "Querent, please select 1 additional card." : "Waiting for querent to select a card..."}
+                  deckImage={settings.deckImage}
+                  prompt={role === 'querent' ? t.selectOneMoreCard : t.waitingForQuerent}
+                    language={language}
+
                 />
               </div>
             )}
@@ -271,23 +297,40 @@ const App: React.FC = () => {
     }
   };
 
+  const {language} = sessionState;
+  const t = translations[language];
+
   return (
     <div className="bg-[#1a1a2e] text-gray-200 min-h-screen w-full flex flex-col items-center p-4 selection:bg-amber-500/50">
       <div className="w-full max-w-7xl flex justify-between items-center mb-4 min-h-[52px]">
-        <h1 className="text-3xl font-bold text-amber-300 font-serif">Interactive Tarot Reading</h1>
-        {role === 'counselor' && sessionCode && sessionState.step !== 'lobby' && (
-          <div className="flex items-center space-x-4 bg-slate-800/50 p-2 rounded-lg">
-            <span className="text-sm font-medium">Session Code:</span>
-            <span className="px-3 py-1 text-lg font-bold tracking-widest bg-slate-700 text-amber-300 rounded-md">{sessionCode}</span>
-          </div>
-        )}
-        {role === 'querent' && sessionState.step !== 'lobby' && (
-          <div className="flex items-center space-x-4 bg-slate-800/50 p-2 rounded-lg">
-            <span className="text-sm font-medium">Joined as Querent</span>
-          </div>
-        )}
+         <h1 className="text-xl sm:text-3xl font-bold text-amber-300 font-serif">
+            <span className="sm:hidden">{t.headerTitleShort}</span>
+            <span className="hidden sm:inline">{t.headerTitleLong}</span>
+        </h1>
+        <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="bg-slate-800/50 p-1 rounded-md flex space-x-1">
+                <button onClick={() => handleLanguageChange('ko')} disabled={role === 'querent'} className={`px-2 py-1 text-sm rounded ${sessionState.language === 'ko' ? 'bg-amber-400 text-slate-900 font-semibold' : 'bg-transparent text-slate-300 hover:bg-slate-700'} transition-colors disabled:cursor-not-allowed`}>
+                    한국어
+                </button>
+                <button onClick={() => handleLanguageChange('en')} disabled={role === 'querent'} className={`px-2 py-1 text-sm rounded ${sessionState.language === 'en' ? 'bg-amber-400 text-slate-900 font-semibold' : 'bg-transparent text-slate-300 hover:bg-slate-700'} transition-colors disabled:cursor-not-allowed`}>
+                    English
+                </button>
+            </div>
+
+            {role === 'counselor' && sessionCode && sessionState.step !== 'lobby' && (
+                <div className="flex items-center space-x-2 bg-slate-800/50 p-2 rounded-lg">
+                    <span className="hidden sm:inline text-sm font-medium">{t.sessionLabel}</span>
+                    <span className="px-3 py-1 text-base sm:text-lg font-bold tracking-widest bg-slate-700 text-amber-300 rounded-md">{sessionCode}</span>
+                </div>
+            )}
+            {role === 'querent' && sessionState.step !== 'lobby' && (
+                <div className="flex items-center space-x-4 bg-slate-800/50 p-2 rounded-lg">
+                    <span className="text-xs sm:text-sm font-medium">{t.joinedAsQuerent}</span>
+                </div>
+            )}
+        </div>
       </div>
-      <div className="w-full flex-grow">
+      <div className="w-full flex-grow flex items-center justify-center">
         {renderStep()}
       </div>
     </div>

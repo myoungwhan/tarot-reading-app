@@ -23,7 +23,7 @@ const AdminCard = ({ cardDetails }) => {
 
     return (
         <>
-            <section className="w-fit bg-white border border-gray-200 rounded-lg shadow-sm">
+            <section className="w-full bg-white border border-gray-200 rounded-lg shadow-sm">
                 <div className="aspect-square bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center p-2">
                     <img
                         className="w-[300px] h-[500px] object-cover"

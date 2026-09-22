@@ -44,7 +44,7 @@ const ChoiceScreen: React.FC<ChoiceScreenProps> = ({ onChoiceSelect, errorMessag
       )}
 
       <div className="mt-12 text-center text-slate-500 max-w-2xl">
-          <h4 className="font-bold mb-2">How it works:</h4>
+          <h4 className="font-bold mb-2">How to Use</h4>
           <p className="text-sm">
             This application uses a real-time socket connection to sync the session between the counselor and the querent. The counselor starts a session, shares the session code, and the querent enters that code to connect. Once connected, both users can view the reading and interact in real-time, even from different devices and locations.
           </p>
