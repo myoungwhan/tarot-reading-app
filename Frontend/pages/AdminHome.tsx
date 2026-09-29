@@ -74,42 +74,78 @@ const AdminHome: React.FC = () => {
                     ) : (
                         <form onSubmit={handleYoutubeSettingsSave} className="space-y-5">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                                <label className="block">
-                                    <span className="block text-sm font-medium text-gray-700 mb-2">Consultant YouTube URL</span>
+                                <div className="block">
+                                    <span className="block text-sm font-medium text-gray-700 mb-2">
+                                        Consultant YouTube URL
+                                    </span>
+
                                     <input
                                         type="url"
                                         value={youtubeForm.consultant_youtube_url}
-                                        onChange={(event) => setYoutubeForm((current) => ({ ...current, consultant_youtube_url: event.target.value }))}
+                                        onChange={(event) =>
+                                            setYoutubeForm((current) => ({
+                                                ...current,
+                                                consultant_youtube_url: event.target.value,
+                                            }))
+                                        }
                                         placeholder="https://..."
                                         className="w-full rounded-lg border border-gray-300 px-3 py-2"
                                     />
-                                    <span className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+
+                                    <label
+                                        htmlFor="consultant-youtube-enabled"
+                                        className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-gray-600"
+                                    >
                                         <input
+                                            id="consultant-youtube-enabled"
                                             type="checkbox"
                                             checked={youtubeForm.consultant_youtube_enabled}
-                                            onChange={(event) => setYoutubeForm((current) => ({ ...current, consultant_youtube_enabled: event.target.checked }))}
+                                            onChange={(event) =>
+                                                setYoutubeForm((current) => ({
+                                                    ...current,
+                                                    consultant_youtube_enabled: event.target.checked,
+                                                }))
+                                            }
                                         />
                                         Enable consultant link
+                                    </label>
+                                </div>
+                                <div className="block">
+                                    <span className="block text-sm font-medium text-gray-700 mb-2">
+                                        Querent YouTube URL
                                     </span>
-                                </label>
-                                <label className="block">
-                                    <span className="block text-sm font-medium text-gray-700 mb-2">Querent YouTube URL</span>
+
                                     <input
                                         type="url"
                                         value={youtubeForm.querent_youtube_url}
-                                        onChange={(event) => setYoutubeForm((current) => ({ ...current, querent_youtube_url: event.target.value }))}
+                                        onChange={(event) =>
+                                            setYoutubeForm((current) => ({
+                                                ...current,
+                                                querent_youtube_url: event.target.value,
+                                            }))
+                                        }
                                         placeholder="https://..."
                                         className="w-full rounded-lg border border-gray-300 px-3 py-2"
                                     />
-                                    <span className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+
+                                    <label
+                                        htmlFor="querent-youtube-enabled"
+                                        className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-gray-600"
+                                    >
                                         <input
+                                            id="querent-youtube-enabled"
                                             type="checkbox"
                                             checked={youtubeForm.querent_youtube_enabled}
-                                            onChange={(event) => setYoutubeForm((current) => ({ ...current, querent_youtube_enabled: event.target.checked }))}
+                                            onChange={(event) =>
+                                                setYoutubeForm((current) => ({
+                                                    ...current,
+                                                    querent_youtube_enabled: event.target.checked,
+                                                }))
+                                            }
                                         />
                                         Enable querent link
-                                    </span>
-                                </label>
+                                    </label>
+                                </div>
                             </div>
                             <div className="flex items-center gap-4">
                                 <button

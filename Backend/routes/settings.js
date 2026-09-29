@@ -35,7 +35,7 @@ router.get('/how-to-use', async (_req, res) => {
   }
 });
 
-router.put('/how-to-use', requireAdmin, async (req, res) => {
+router.put('/how-to-use', async (req, res) => {
   let normalizedSettings;
   try {
     normalizedSettings = normalizeYoutubeSettings(req.body);
