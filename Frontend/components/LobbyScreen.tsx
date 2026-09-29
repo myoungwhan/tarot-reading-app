@@ -1,18 +1,22 @@
 import { translations } from '@/translations';
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import type { HowToUseSettings } from '@/services/api';
 
 interface LobbyScreenProps {
   onStartCounselor: () => void;
   onJoinQuerent: (code: string) => void;
   errorMessage: string;
-language: 'ko' | 'en';
+  language: 'ko' | 'en';
+  youtubeSettings?: HowToUseSettings;
 }
 
-const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuerent, errorMessage, language }) => {
+const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuerent, errorMessage, language, youtubeSettings }) => {
   const location = useLocation();
   const [code, setCode] = useState('');
   const t = translations[language];
+  const isQuerent = location.pathname === '/querents';
+  const youtubeLink = isQuerent ? youtubeSettings?.querent : youtubeSettings?.consultant;
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,13 +27,25 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuere
 
   return (
     <div className="w-full max-w-4xl mx-auto p-8 flex flex-col items-center justify-center animate-fade-in">
-      <h2 className="text-4xl font-bold text-center text-amber-300 mb-6 font-serif">{t.lobbyWelcome}</h2>
+      <div className="relative mb-6 flex justify-center w-full">
+        <div className="relative inline-block text-center max-w-[320px]">
+          <img
+            src="/logo.png"
+            alt="Tarot Logo"
+            className="absolute z-0 pointer-events-none"
+            style={{ width: '190px', height: '200px', top: '-60px', left: '-20px' }}
+          />
+          <h2 className="text-4xl font-bold text-center text-amber-300 mb-6 font-serif">
+            {t.lobbyWelcome}
+          </h2>
+        </div>
+      </div>
       <p className="text-center text-slate-400 mb-12">{t.lobbyDescription}</p>
 
       <div className="w-full grid md:grid-cols-2 gap-8">
         {/* Counselor Panel */}
         <div className="bg-slate-800/50 p-8 rounded-2xl shadow-2xl border border-slate-700 flex flex-col items-center">
-          <h3 className="text-2xl font-serif text-amber-200 mb-4">{t.counselorTitle}</h3>
+          <h3 className={`text-2xl font-serif  ${!isQuerent ? 'text-amber-200' : 'text-slate-400'} mb-4`}>{t.counselorTitle}</h3>
           <p className="text-center text-slate-400 mb-6">{t.counselorDescription}</p>
           <button
             disabled={location.pathname === "/querents"}
@@ -42,8 +58,8 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuere
 
         {/* Querent Panel */}
         <div className="bg-slate-800/50 p-8 rounded-2xl shadow-2xl border border-slate-700 flex flex-col items-center">
-          <h3 className="text-2xl font-serif text-amber-200 mb-4">{t.querentTitle}</h3>
-         <p className="text-center text-slate-400 mb-6">{t.querentDescription}</p>
+          <h3 className={`text-2xl ${isQuerent ? 'text-amber-200' : 'text-slate-400'} font-serif mb-4`}>{t.querentTitle}</h3>
+         <p className={`text-center mb-6  text-slate-400`}>{t.querentDescription}</p>
           <form onSubmit={handleJoin} className="w-full flex flex-col items-center">
             <input
               type="text"
@@ -74,6 +90,16 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuere
           <p className="text-sm whitespace-pre-line">
            {t.howItWorksDescription}
           </p>
+          {youtubeLink?.enabled && youtubeLink.url && (
+            <a
+              href={youtubeLink.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-3 text-amber-300 hover:text-amber-200 underline underline-offset-2"
+            >
+              {isQuerent ? t.querentYoutubeLabel : t.consultantYoutubeLabel}
+            </a>
+          )}
       </div>
       
        <style>{`

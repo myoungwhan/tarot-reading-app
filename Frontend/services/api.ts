@@ -10,12 +10,54 @@ export interface TarotCard {
   // Add other card fields as needed
 }
 
+export interface HowToUseSettings {
+  consultant: { url: string; enabled: boolean };
+  querent: { url: string; enabled: boolean };
+}
+
+export interface HowToUseSettingsUpdate {
+  consultant_youtube_url: string;
+  consultant_youtube_enabled: boolean;
+  querent_youtube_url: string;
+  querent_youtube_enabled: boolean;
+}
+
+const getAdminToken = () => {
+  const storedToken = localStorage.getItem('adminUser');
+  if (!storedToken) return '';
+
+  try {
+    return JSON.parse(storedToken);
+  } catch {
+    return storedToken;
+  }
+};
+
 console.log('Tarot API initialized',import.meta.env.VITE_BACKEND_URL);
 export const tarotApi = createApi({
   reducerPath: 'tarotApi',
-  baseQuery: fetchBaseQuery({ baseUrl: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api' }),
-  tagTypes: ['Card', 'Deck'], // 👈 declare tags
+  baseQuery: fetchBaseQuery({
+    baseUrl: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api',
+    prepareHeaders: (headers) => {
+      const token = getAdminToken();
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+      return headers;
+    },
+  }),
+  tagTypes: ['Card', 'Deck', 'Settings'],
   endpoints: (builder) => ({
+    getHowToUseSettings: builder.query<HowToUseSettings, void>({
+      query: () => 'settings/how-to-use',
+      providesTags: ['Settings'],
+    }),
+    updateHowToUseSettings: builder.mutation<HowToUseSettings, HowToUseSettingsUpdate>({
+      query: (body) => ({
+        url: 'settings/how-to-use',
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Settings'],
+    }),
     getDecks: builder.query<TarotDeck[], void>({
       query: () => 'decks/',
       providesTags: ['Deck'],
@@ -81,6 +123,8 @@ export const tarotApi = createApi({
 
 export const {
   useGetDecksQuery,
+  useGetHowToUseSettingsQuery,
+  useUpdateHowToUseSettingsMutation,
   useGetCardsQuery,
   useUpdateCardMutation,
   useUpdateDeckMutation,
