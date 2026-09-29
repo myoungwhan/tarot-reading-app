@@ -95,9 +95,13 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuere
               href={youtubeLink.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block mt-3 text-amber-300 hover:text-amber-200 underline underline-offset-2"
+              className="mt-3 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-amber-400/70 bg-slate-800/90 px-4 py-2 font-semibold text-amber-300 shadow-lg shadow-black/20 transition-colors hover:bg-amber-400 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a1a2e]"
             >
-              {isQuerent ? t.querentYoutubeLabel : t.consultantYoutubeLabel}
+              <svg viewBox="0 0 24 24" width="20" height="20" className="shrink-0 text-red-500" aria-hidden="true">
+                <path fill="currentColor" d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8Z" />
+                <path fill="white" d="m9.5 15.5 6-3.5-6-3.5v7Z" />
+              </svg>
+              <span>{t.youtubeButtonLabel}</span>
             </a>
           )}
       </div>

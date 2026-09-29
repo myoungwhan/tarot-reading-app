@@ -17,8 +17,7 @@ export const translations = {
     querentButton: "세션 참여",
     howItWorksTitle: "사용법",
     howItWorksDescription: "카드위로 손가락을 우측에서 좌측으로 이동하면서 카드를 선택할 수 있습니다.\n핀치투줌으로 카드덱을 확대, 축소할 수 있습니다.\n빈 카드덱 위에서 손가락으로 카드 전체를 이동할 수 있습니다.",
-    consultantYoutubeLabel: "상담사 YouTube",
-    querentYoutubeLabel: "질문자 YouTube",
+    youtubeButtonLabel: "YouTube에서 보기",
     joiningSession: "세션에 참여하는 중...",
     
     // Setup Screen
@@ -83,8 +82,7 @@ export const translations = {
     querentButton: "Join Session",
     howItWorksTitle: "How to Use",
     howItWorksDescription: "You can select cards by sliding your finger from right to left over them.\nYou can zoom in and out of the deck using the pinch-to-zoom feature.\nYou can move the entire card with your finger over an empty deck.",
-    consultantYoutubeLabel: "Consultant YouTube",
-    querentYoutubeLabel: "Querent YouTube",
+    youtubeButtonLabel: "Watch on YouTube",
     joiningSession: "Joining session...",
 
     // Setup Screen
