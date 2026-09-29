@@ -3,6 +3,7 @@ const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
 const { sequelize } = require('./models/index');
+const AppSettings = require('./models/appSettings');
 const dotenv = require('dotenv');
 const cors = require('cors');
 dotenv.config();
@@ -34,6 +35,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/decks', require('./routes/deck'));
 app.use('/api/cards', require('./routes/card'));
 app.use('/api/users', require('./routes/user'));
+app.use('/api/settings', require('./routes/settings'));
 app.get('/api/health', (req,res) => {
   res.json({ success: true, message: `Backend is running - ${Date.now()}` });
 })
@@ -97,6 +99,7 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 80;
 server.listen(PORT,hostname,async  () => {
   await sequelize.authenticate();
+  await AppSettings.sync();
   console.log(`Server running at http://${hostname}:${PORT}/`);
   console.log('Database connected successfully');
 });
