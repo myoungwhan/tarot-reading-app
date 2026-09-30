@@ -5,6 +5,7 @@ const User = require('../models/user');
 const {sequelize} = require('../models/index');
 require('../models/card');
 require('../models/deck');
+require('../models/appSettings');
 
 sequelize.sync()
     .then(() => {

@@ -7,7 +7,7 @@ import ShuffleScreen from './components/ShuffleScreen';
 import SelectionScreen from './components/SelectionScreen';
 import ReadingScreen from './components/ReadingScreen';
 import { socket } from './services/socket';
-import { useGetDecksQuery, useGetCardsQuery } from './services/api';
+import { useGetDecksQuery, useGetCardsQuery, useGetHowToUseSettingsQuery } from './services/api';
 import _ from 'lodash';
 import { translations } from './translations';
 import QuerentWaitingScreen from './components/QuerentWaitingScreen';
@@ -36,6 +36,7 @@ const App: React.FC = () => {
   const [sessionCode, setSessionCode] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const { data: decks = [], isLoading: decksLoading } = useGetDecksQuery();
+  const { data: howToUseSettings } = useGetHowToUseSettingsQuery();
   // Get the selected deck id from settings
   const selectedDeckId = sessionState.settings.deckStyle;
   // Fetch cards for the selected deck and cardSet (major/full)
@@ -190,6 +191,8 @@ const App: React.FC = () => {
     }));
   };
 
+  const isQuerentPage = location.pathname === "/querents";
+
   const handleCardsSelected = (cards: CardInstance[]) => {
     const remainingDeck = sessionState.deck.filter(d => !cards.some(sc => sc.id === d.id));
     setSessionState(prev => ({
@@ -245,7 +248,7 @@ const App: React.FC = () => {
 
     switch (step) {
       case 'lobby':
-        return <LobbyScreen onStartCounselor={handleStartCounselorSession} onJoinQuerent={handleJoinQuerentSession} errorMessage={errorMessage} language={language} />;
+        return <LobbyScreen onStartCounselor={handleStartCounselorSession} onJoinQuerent={handleJoinQuerentSession} errorMessage={errorMessage} language={language} youtubeSettings={howToUseSettings} />;
       case 'setup':
         if(role === 'querent') {
             return <QuerentWaitingScreen deckBackClass={settings.deckBackClass} deckImage={settings.deckImage} language={language} />
