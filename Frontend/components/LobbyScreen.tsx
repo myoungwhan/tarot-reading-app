@@ -68,7 +68,6 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuere
           >
             {t.counselorButton}
           </button>
-          {!isQuerent && youtubeButton}
         </div>
 
         {/* Querent Panel */}
@@ -92,7 +91,6 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuere
             >
               {t.querentButton}
             </button>
-            {isQuerent && youtubeButton}
           </form>
         </div>
       </div>
@@ -106,6 +104,7 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({ onStartCounselor, onJoinQuere
           <p className="text-sm whitespace-pre-line">
            {t.howItWorksDescription}
           </p>
+          {youtubeButton}
       </div>
       
        <style>{`
