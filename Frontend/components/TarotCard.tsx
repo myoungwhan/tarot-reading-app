@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { CardInstance, PlacedCard } from '../types';
 
 interface TarotCardProps {
@@ -13,6 +13,33 @@ interface TarotCardProps {
 }
 
 export const TarotCard: React.FC<TarotCardProps> = ({ card, isFlipped, deckBackClass, deckImage, onFlip, style, showNumber }) => {
+  const nameRef = useRef<HTMLParagraphElement>(null);
+
+  useLayoutEffect(() => {
+    const name = nameRef.current;
+    if (!isFlipped || !name) return;
+
+    const fitName = () => {
+      name.style.removeProperty('font-size');
+      const width = name.clientWidth;
+      const textWidth = name.scrollWidth;
+      if (width > 0 && textWidth > width) {
+        const fontSize = parseFloat(getComputedStyle(name).fontSize);
+        const fittedSize = Math.max(8, fontSize * (width - 1) / textWidth);
+        name.style.fontSize = `${fittedSize}px`;
+      }
+    };
+
+    fitName();
+
+    // Refit after the web font replaces its fallback.
+    let active = true;
+    void document.fonts.ready.then(() => {
+      if (active) fitName();
+    });
+    return () => { active = false; };
+  }, [card.data.name, isFlipped]);
+
   // Use onMouseDown and stop propagation to prevent triggering drag events on the parent.
   const handleFlipClick = (e: React.MouseEvent) => {
     e.stopPropagation(); 
@@ -56,11 +83,17 @@ export const TarotCard: React.FC<TarotCardProps> = ({ card, isFlipped, deckBackC
         
         {/* Card Front */}
         <div 
-          className="card-face card-face-front bg-slate-900 shadow-lg border-2 border-amber-300 p-1" 
+          className="card-face card-face-front bg-slate-900 shadow-lg border-2 border-amber-300 p-0.5"
         >
-          <div className={`w-full h-full bg-slate-800 rounded-lg flex flex-col items-center justify-center p-1 text-center transition-transform duration-300 ${card.isReversed ? 'rotate-180' : ''}`}>
-             <img src={card.data.image_url} alt={card.data.name} className="w-[104px] h-[152px] object-cover rounded-md mb-1"/>
-            <p className="text-amber-100 text-[11px] font-serif leading-tight">{card.data.name}</p>
+          <div className={`grid h-full grid-rows-[minmax(0,1fr)_14px] rounded-lg bg-slate-800 text-center transition-transform duration-300 ${card.isReversed ? 'rotate-180' : ''}`}>
+            <img src={card.data.image_url} alt={card.data.name} className="h-full w-full rounded-md object-cover" />
+            <p
+              ref={nameRef}
+              title={card.data.name}
+              className="mx-0.5 truncate font-serif text-[11px] leading-[14px] text-amber-100"
+            >
+              {card.data.name}
+            </p>
           </div>
            {/* Render button on the front face */}
           {onFlip && <FlipButton />}

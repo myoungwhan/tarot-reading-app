@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { GameStep, Settings, CardInstance, Role, PlacedCard, CardData, SessionState } from './types';
-import { SPREADS, FULL_DECK, MAJOR_ARCANA } from './constants';
+import { SPREADS, FULL_DECK, MAJOR_ARCANA, DECK_STYLES } from './constants';
 import LobbyScreen from './components/LobbyScreen';
 import SetupScreen from './components/SetupScreen';
 import ShuffleScreen from './components/ShuffleScreen';
 import SelectionScreen from './components/SelectionScreen';
 import ReadingScreen from './components/ReadingScreen';
 import { socket } from './services/socket';
-import { useGetDecksQuery, useGetCardsQuery, useGetHowToUseSettingsQuery } from './services/api';
+import { useGetDecksQuery, useGetCardsQuery, useGetHowToUseSettingsQuery, useGetStandbyDeckSettingsQuery } from './services/api';
 import _ from 'lodash';
 import { translations } from './translations';
 import QuerentWaitingScreen from './components/QuerentWaitingScreen';
@@ -37,6 +37,10 @@ const App: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const { data: decks = [], isLoading: decksLoading } = useGetDecksQuery();
   const { data: howToUseSettings } = useGetHowToUseSettingsQuery();
+  const { data: standbySettings } = useGetStandbyDeckSettingsQuery(undefined, {
+    skip: role !== 'querent' || sessionState.step !== 'setup',
+    refetchOnMountOrArgChange: true,
+  });
   // Get the selected deck id from settings
   const selectedDeckId = sessionState.settings.deckStyle;
   // Fetch cards for the selected deck and cardSet (major/full)
@@ -250,8 +254,16 @@ const App: React.FC = () => {
       case 'lobby':
         return <LobbyScreen onStartCounselor={handleStartCounselorSession} onJoinQuerent={handleJoinQuerentSession} errorMessage={errorMessage} language={language} youtubeSettings={howToUseSettings} />;
       case 'setup':
-        if(role === 'querent') {
-            return <QuerentWaitingScreen deckBackClass={settings.deckBackClass} deckImage={settings.deckImage} language={language} />
+        if (role === 'querent') {
+          const standbyDeck = decks.find(deck => deck.id === standbySettings?.deckId);
+          const standbyStyle = standbyDeck && DECK_STYLES.find(style => style.name.toLowerCase() === standbyDeck.name.toLowerCase());
+          return (
+            <QuerentWaitingScreen
+              deckBackClass={standbyDeck ? (standbyStyle?.backClass ?? 'card-back-waite') : settings.deckBackClass}
+              deckImage={standbyDeck ? (standbyDeck.image_url || standbyDeck.image) : settings.deckImage}
+              language={language}
+            />
+          );
         }
         return <SetupScreen onComplete={handleSetupComplete} currentSettings={settings} role={role!} language={language}/>;
       case 'shuffling':

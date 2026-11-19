@@ -5,6 +5,7 @@ import SystemStats from "@/components/SystemStats";
 import AddDeckModal from "@/components/AddDeckModal";
 import EditDeckModal from "@/components/EditDeckModal";
 import DeleteDeckModal from "@/components/DeleteDeckModal";
+import StandbyDeckSettings from "@/components/StandbyDeckSettings";
 import {
     useGetDecksQuery,
     useGetHowToUseSettingsQuery,
@@ -161,6 +162,7 @@ const AdminHome: React.FC = () => {
                         </form>
                     )}
                 </section>
+                <StandbyDeckSettings />
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 mt-10 max-w-[90vw] ml-auto">
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900 mb-2">Deck Management</h2>

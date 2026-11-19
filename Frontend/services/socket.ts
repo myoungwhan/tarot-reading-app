@@ -1,7 +1,8 @@
 import { io,Socket } from "socket.io-client";
+import { API_BASE_URL } from './api';
 
-const URL = 'http://47.236.118.189:80/'; // Update this if needed
+const socketOrigin = new URL(API_BASE_URL, window.location.origin).origin;
 
-export const socket: Socket = io(URL, {
+export const socket: Socket = io(socketOrigin, {
   autoConnect: false, // Connect manually after user joins
 });

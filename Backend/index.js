@@ -4,11 +4,12 @@ const path = require('path');
 const { Server } = require('socket.io');
 const { sequelize } = require('./models/index');
 const AppSettings = require('./models/appSettings');
+const StandbySettings = require('./models/standbySettings');
 const dotenv = require('dotenv');
 const cors = require('cors');
 dotenv.config();
 
-const hostname = '0.0.0.0'; // Binding to all IP addresses
+const hostname = process.env.HOST || '0.0.0.0';
 
 // Setup
 const app = express();
@@ -97,9 +98,18 @@ io.on('connection', (socket) => {
 
 // Start
 const PORT = process.env.PORT || 80;
-server.listen(PORT,hostname,async  () => {
+const start = async () => {
   await sequelize.authenticate();
   await AppSettings.sync();
-  console.log(`Server running at http://${hostname}:${PORT}/`);
-  console.log('Database connected successfully');
+  await StandbySettings.sync();
+  server.listen(PORT, hostname, () => {
+    console.log(`Server running at http://${hostname}:${PORT}/`);
+    console.log('Database connected successfully');
+  });
+};
+
+start().catch(error => {
+  console.error('Error initializing the server:', error);
+  process.exitCode = 1;
+  return sequelize.close();
 });

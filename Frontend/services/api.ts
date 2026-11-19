@@ -1,6 +1,8 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { TarotDeck } from '@/data/sampledecks';
 
+export const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api';
+
 export interface TarotCard {
   id: string;
   deck_id: string;
@@ -22,6 +24,10 @@ export interface HowToUseSettingsUpdate {
   querent_youtube_enabled: boolean;
 }
 
+interface StandbyDeckSettings {
+  deckId: number | null;
+}
+
 const getAdminToken = () => {
   const storedToken = localStorage.getItem('adminUser');
   if (!storedToken) return '';
@@ -37,14 +43,14 @@ console.log('Tarot API initialized',import.meta.env.VITE_BACKEND_URL);
 export const tarotApi = createApi({
   reducerPath: 'tarotApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api',
+    baseUrl: API_BASE_URL,
     prepareHeaders: (headers) => {
       const token = getAdminToken();
       if (token) headers.set('Authorization', `Bearer ${token}`);
       return headers;
     },
   }),
-  tagTypes: ['Card', 'Deck', 'Settings'],
+  tagTypes: ['Card', 'Deck', 'Settings', 'StandbyDeckSettings'],
   endpoints: (builder) => ({
     getHowToUseSettings: builder.query<HowToUseSettings, void>({
       query: () => 'settings/how-to-use',
@@ -57,6 +63,18 @@ export const tarotApi = createApi({
         body,
       }),
       invalidatesTags: ['Settings'],
+    }),
+    getStandbyDeckSettings: builder.query<StandbyDeckSettings, void>({
+      query: () => 'settings/standby-deck',
+      providesTags: ['StandbyDeckSettings'],
+    }),
+    updateStandbyDeckSettings: builder.mutation<StandbyDeckSettings, StandbyDeckSettings>({
+      query: (body) => ({
+        url: 'settings/standby-deck',
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: (_result, error) => error ? [] : ['StandbyDeckSettings'],
     }),
     getDecks: builder.query<TarotDeck[], void>({
       query: () => 'decks/',
@@ -108,7 +126,7 @@ export const tarotApi = createApi({
         url: `decks/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Deck'],
+      invalidatesTags: ['Deck', 'StandbyDeckSettings'],
     }),
     createDeck: builder.mutation<TarotDeck, FormData>({
       query: (formData) => ({
@@ -125,6 +143,8 @@ export const {
   useGetDecksQuery,
   useGetHowToUseSettingsQuery,
   useUpdateHowToUseSettingsMutation,
+  useGetStandbyDeckSettingsQuery,
+  useUpdateStandbyDeckSettingsMutation,
   useGetCardsQuery,
   useUpdateCardMutation,
   useUpdateDeckMutation,

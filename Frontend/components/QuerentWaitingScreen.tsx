@@ -20,7 +20,7 @@ const QuerentWaitingScreen: React.FC<QuerentWaitingScreenProps> = ({ deckBackCla
       </p>
 
       {/* Static card stack visualization */}
-      <div className="relative w-48 h-64">
+      <div className="relative w-48 h-64" aria-hidden="true">
         {Array.from({ length: 7 }).map((_, i) => (
           <div
             key={i}
@@ -30,9 +30,18 @@ const QuerentWaitingScreen: React.FC<QuerentWaitingScreenProps> = ({ deckBackCla
               top: 'calc(50% - 112px)',
               transform: `translateX(${(i - 3) * 2}px) translateY(${(i - 3) * -2}px) rotate(${(i - 3) * 1.5}deg)`,
               zIndex: i,
-              ...(deckImage ? { backgroundImage: `url(${deckImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {})
             }}
-          ></div>
+          >
+            {deckImage && (
+              <img
+                key={deckImage}
+                src={deckImage}
+                alt=""
+                className="absolute inset-0 h-full w-full rounded-[inherit] object-cover"
+                onError={event => { event.currentTarget.style.visibility = 'hidden'; }}
+              />
+            )}
+          </div>
         ))}
       </div>
        <style>{`

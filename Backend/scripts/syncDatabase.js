@@ -6,6 +6,7 @@ const {sequelize} = require('../models/index');
 require('../models/card');
 require('../models/deck');
 require('../models/appSettings');
+require('../models/standbySettings');
 
 sequelize.sync()
     .then(() => {
